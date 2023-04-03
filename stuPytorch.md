@@ -20,7 +20,7 @@ tuples是immutable，list是mutable的，所以我们可以将tuples用作dictio
 c = {a:1}
 ```
 
-[python 列表，元组，字典，集合，字符串相互转换](https://zhuanlan.zhihu.com/p/82703713#:~:text=列表与元组的互换 %23 将列表转化为元组 li %3D [1%2C 2%2C 3],%23 打印结果%3A [1%2C 2%2C 3]  2.)
+[python 列表，元组，字典，集合，字符串相互转换 - 果果的文章 - 知乎 ](https://zhuanlan.zhihu.com/p/82703713)
 
 这里有一个很常见的函数，eval函数就是实现list、dict、tuple与str之间的转化，同样str函数把list，dict，tuple转为为字符串。
 
@@ -237,13 +237,11 @@ b.is_contiguous()
 
 ## Tensor类型
 
-![image-20230323221848943](D:\lifeng\md文档\pic\image-20230323221848943.png)
+![image-20230323221848943](./pic/image-20230323221848943.png)
 
 
 
 各数据类型之间可以互相转换，`type(new_type)`是通用的做法，同时还有`float`、`long`、`half`等快捷方法。CPU tensor与GPU tensor之间的互相转换通过`tensor.cuda`和`tensor.cpu`方法实现，此外还可以使用`tensor.to(device)`
-
-
 
 ```python
 # 设置默认tensor，注意参数是字符串
@@ -496,7 +494,7 @@ Padding:即所谓的图像填充，后面的int型常数代表填充的多少（
 
 需要注意的是这里的填充包括图像的上下左右，以padding = 1为例，若原始图像大小为32x32，那么padding后的图像大小就变成了34x34，而不是33x33。
   Pytorch不同于Tensorflow的地方在于，Tensorflow提供的是padding的模式，比如same、valid，且不同模式对应了不同的输出图像尺寸计算公式。而Pytorch则需要手动输入padding的数量，当然，Pytorch这种实现好处就在于输出图像尺寸计算公式是唯一的
-![image-20230324174304188](D:\lifeng\md文档\pic\image-20230324174304188.png)
+![image-20230324174304188](./pic\image-20230324174304188.png)
 
 ### torch.nn.MaxPool2d
 
@@ -508,7 +506,7 @@ padding ：填充，可以是单个值，也可以是tuple元组
 dilation ：控制窗口中元素步幅
 return_indices ：这是个布尔类型值，表示返回值中是否包含最大值位置的索引。注意这个最大值指的是在所有窗口中产生的最大值，如果窗口产生的最大值总共有5个，就会有5个返回值。
 ceil_mode ：布尔类型，为True，用向上取整的方法，计算输出形状；默认是向下取整。
-![image-20230324174757771](D:\lifeng\md文档\pic\image-20230324174757771.png)
+![image-20230324174757771](./pic\image-20230324174757771.png)
 
 
 
@@ -538,7 +536,7 @@ torch.nn.BatchNorm2d(num_features, eps=1e-05, momentum=0.1, affine=True, track_r
 
 卷积层之后总会添加BatchNorm2d进行数据的归一化处理，这使得数据在进行Relu之前不会因为数据过大而导致网络性能的不稳定
 
-![image-20230324181111653](D:\lifeng\md文档\pic\image-20230324181111653.png)
+![image-20230324181111653](./pic\image-20230324181111653.png)
 
 1.num_features：一般输入参数为batch_size_num_features_height_width，即为其中特征的数量
 
@@ -847,9 +845,9 @@ save_image(img,'./1png')
 
 [服务器端使用visdom进行可视化并更换端口(亲测有效)_visdom端口_小舟%的博客-CSDN博客](https://blog.csdn.net/ds1302__/article/details/121041319)
 
-[(14条消息) 深度学习可视化工具visdom使用_visdom使用教程_点亮～黑夜的博客-CSDN博客](https://blog.csdn.net/weixin_41010198/article/details/117853358)
+[深度学习可视化工具visdom使用_visdom使用教程_点亮～黑夜的博客-CSDN博客](https://blog.csdn.net/weixin_41010198/article/details/117853358)
 
-[(14条消息) 服务器端使用visdom进行可视化并更换端口(亲测有效)_visdom端口_小舟%的博客-CSDN博客](https://blog.csdn.net/ds1302__/article/details/121041319)
+[服务器端使用visdom进行可视化并更换端口(亲测有效)_visdom端口_小舟%的博客-CSDN博客](https://blog.csdn.net/ds1302__/article/details/121041319)
 
 Visdom中有两个重要概念：
 

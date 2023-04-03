@@ -341,8 +341,10 @@ using SI = Sales_item; // SI is a synonym for Sales_item
 
 ## string
 
+
+
 ```c++
-	string string1 = "abc";
+    string string1 = "abc";
     string string2(string1);
     string string3("abc");
     string string4(3,'a');  //aaa

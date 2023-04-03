@@ -97,7 +97,7 @@ which python
 
 [解决Pycharm远程连接服务器调用Matplotlib绘图时无法在本地显示图形的问题 - DuanYongchun - 博客园 (cnblogs.com)](https://www.cnblogs.com/dyc99/p/12936080.html)
 
-[(1条消息) Pycharm 远程连接服务器无法显示matplotlib图像的问题_Yarn_的博客-CSDN博客](https://blog.csdn.net/Yarn_/article/details/86506591)
+[ Pycharm 远程连接服务器无法显示matplotlib图像的问题_Yarn_的博客-CSDN博客](https://blog.csdn.net/Yarn_/article/details/86506591)
 
 
 
