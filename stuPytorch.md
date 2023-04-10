@@ -24,6 +24,40 @@ c = {a:1}
 
 这里有一个很常见的函数，eval函数就是实现list、dict、tuple与str之间的转化，同样str函数把list，dict，tuple转为为字符串。
 
+
+
+
+
+list有一个很常见的用法 *list
+
+```python
+def add(a, b):
+    return a + b
+data = [4, 3]
+print(add(*data))
+print(add(data[0], data[1]))
+# 等价于 print add(4, 3)
+```
+
+
+
+### namedTuple
+
+namedtuple是继承自tuple的子类。namedtuple创建一个和tuple类似的对象，而且对象拥有可访问的属性。
+
+```python
+User = namedtuple('feature', ['name', 'sex', 'age'])
+u = User(name='lee', sex='male', age=22)
+print(u)  # feature(name='lee', sex='male', age=22)
+print(u.age)  # 22
+u = u._replace(age=12)  # 修改对象的属性
+print(u)  # feature(name='lee', sex='male', age=12)
+dict_u = u._asdict()  # 将User对象转为字典
+print(type(dict_u), dict_u)  # <class 'dict'> {'name': 'lee', 'sex': 'male', 'age': 12}
+```
+
+
+
 ## 创建Tensor的多种方法
 
 ### 指定形状创建
@@ -149,7 +183,57 @@ index = torch.LongTensor
 |         non_zero(input)         |                     非0元素的下标                     |
 |    gather(input, dim, index)    | 根据index，在dim维度上选取数据，输出的size与index一样 |
 
+`tensor.new()`
 
+创建一个新的Tensor，该Tensor的type和device都和原有Tensor一致，且无内容。
+
+```python
+a = torch.randn(2, 3)
+b = a.new()
+b = torch.Tensor.new(a)
+```
+
+
+
+`tensor.expand() `
+
+- 只能对维度值包含 1 的张量Tensor进行扩展，即：Tensor的size必须满足：torch.Size([1, n]) 或者 torch.Size([n, 1]) 。
+- 只能对维度值等于 1 的那个维度进行扩展，无需扩展的维度务必保持维度值不变，或者置为-1，否则，报错。（简言之，只要是单维度均可进行扩展，但是若非单维度会报错。）
+- 扩展的Tensor不会分配新的内存，只是原来的基础上创建新的视图并返回
+- 新扩展维度的取值范围为：− 1 以 及 [ 1 , + ∞ ] 区 间 内 的 任 意 整 数 -1以及[1, +∞]区间内的任意整数−1以及[1,+∞]区间内的任意整数，例如：将 torch.Size([1, n]) 扩展为torch.Size([m, n])时，新扩展维度 m 的可能取值为-1，或者 m ≥ 1的任意整数；
+- 只能对张量Tensor进行维度扩展，而不能降维；否则，报错。
+- tensor通过.expand()函数扩展某一维度后，tensor自身不会发生变化
+
+```python
+a = torch.tensor([[1],[2],[3]])
+
+b = a.expand(-1,3)
+'''
+tensor([[1, 1, 1],
+        [2, 2, 2],
+        [3, 3, 3]])
+'''
+c = torch.tensor([1,2,3])
+
+d = c.expand(2,-1)
+'''
+tensor([[1, 2, 3],
+        [1, 2, 3]])
+'''
+```
+
+`tensor.expand_as()`
+
+```python
+a = torch.tensor([[2], [3], [4]])
+b = torch.tensor([[2, 2], [3, 3], [5, 5]])
+c = a.expand_as(b)
+'''
+tensor([[2, 2],
+        [3, 3],
+        [4, 4]])
+'''
+```
 
 ### 高级索引
 
@@ -293,6 +377,53 @@ print(c.requires_grad)  # True
 - variable的grad与data形状一致，应避免直接修改variable.data，因为对data的直接操作无法利用autograd进行反向传播
 - 反向传播函数`backward`的参数`grad_variables`可以看成链式求导的中间结果，如果是标量，可以省略，默认为1
 - PyTorch采用动态图设计，可以很方便地查看中间层的输出，动态的设计计算图结构。
+
+## Pytorch中.detach()与.data的用法
+
+Tensor.data和Tensor.detach()一样， 都会返回一个新的Tensor， 这个Tensor和原来的Tensor共享内存空间，一个改变，另一个也会随着改变，且都会设置新的Tensor的requires_grad属性为False。现在.data仍保留，但建议使用 .detach()。
+
+
+
+```python
+'''以下是.data'''
+a = torch.tensor([1, 2, 3.], requires_grad=True)
+out = a.sigmoid()
+c = out.data  # 需要走注意的是，通过.data “分离”得到的的变量会和原来的变量共用同样的数据，而且新分离得到的张量是不可求导的，c发生了变化，原来的张量也会发生变化
+c.zero_()  # 改变c的值，原来的out也会改变
+print(c.requires_grad)  # False
+print(c)  # tensor([0., 0., 0.])
+print(out.requires_grad)  # True
+print(out)  # tensor([0., 0., 0.], grad_fn=<SigmoidBackward0>)
+out.sum().backward()
+print(a.grad)  # tensor([0., 0., 0.])
+
+'''以下是.detach()'''
+a = torch.tensor([1, 2, 3.], requires_grad=True)
+out = a.sigmoid()
+c = out.detach()  # 需要走注意的是，通过.detach() “分离”得到的的变量会和原来的变量共用同样的数据，而且新分离得到的张量是不可求导的，c发生了变化，原来的张量也会发生变化
+c.zero_()  # 改变c的值，原来的out也会改变
+print(c.requires_grad)  # False
+print(c)  # tensor([0., 0., 0.])
+print(out.requires_grad)  # True
+print(out)  # tensor([0., 0., 0.], grad_fn=<SigmoidBackward0>)
+out.sum().backward()
+print(a.grad)  # 运行此处会报错
+'''
+由于我更改分离之后的变量值c,导致原来的张量out的值也跟着改变了，
+这个时候如果依然按照求导规则来求导，由于out已经更改了，所以不会再继续求导了，
+而是报错，这样就避免了得出完全牛头不对马嘴的求导结果。
+'''
+```
+
+Tensor.data和Tensor.detach()一样， 都会返回一个新的Tensor， 这个Tensor和原来的Tensor共享内存空间，一个改变，另一个也会随着改变，且都会设置新的Tensor的requires_grad属性为False。这两个方法只取出原来Tensor的tensor数据， 丢弃了grad、grad_fn等额外的信息。区别在于**Tensor.data不能被autograd追踪到，如果你修改了Tensor.data返回的新Tensor，原来的Tensor也会改变， 但是这时候的微分并没有被追踪到，那么当你执行loss.backward()的时候并不会报错，但是求的梯度就是错误的**！因此， 如果你使用了Tensor.data，那么切记一定不要随便修改返回的新Tensor的值。如果你使用的是Tensor.detach()方法，当你修改他的返回值并进行求导操作，会报错。 因此，**Tensor.detach()是安全的。**
+
+
+
+
+
+btw，.data返回的是一个tensor,而.item()返回的是一个具体的数值。注意：对于元素不止一个的tensor列表，使用item()会报错。
+
+
 
 # 2
 
@@ -514,6 +645,12 @@ torch.nn.AvgPool2d(kernel_size, stride=None, padding=0, ceil_mode=False, count_i
 
 
 
+
+
+
+
+
+
 ### torch.nn.Dropout
 
 torch.nn.Dropout(p=0.5, inplace=False)
@@ -550,7 +687,19 @@ torch.nn.BatchNorm2d(num_features, eps=1e-05, momentum=0.1, affine=True, track_r
 
 对于BN，在训练时，是对每一批的训练数据进行归一化，也即用每一批数据的均值和方差。
 
-而在测试时，比如进行一个样本的预测，就并没有batch的概念，因此，这个时候用的均值和方差是全量训练数据的均值和方差，这个可以通过移动平均法求得
+而在测试时，比如进行一个样本的预测，就并没有batch的概念，因此，这个时候用的均值和方差是全量训练数据的均值和方差，这个可以通过移动平均法求得。
+
+
+
+常见的normalization函数还有：InstanceNorm,LayerNorm,GroupNorm
+
+[pytorch常用normalization函数详解_pytorch normalization_](https://blog.csdn.net/weixin_43844219/article/details/104600514)
+
+### torch.nn.ReflectionPad2d
+
+[torch.nn.ReflectionPad2d()的用法简介_LionZYT的博客-CSDN博客](https://blog.csdn.net/LionZYT/article/details/120181586)
+
+填充的目的一般是为了在卷积时能够处理到边缘像素，这样特征图周围不会出现一圈0值，因为卷积核是围绕中心像素进行矩阵乘法的。
 
 
 
@@ -617,6 +766,16 @@ class Net(nn.Module):
 
 nn.functional.xxx 是函数接口，nn.Xxx 是 .nn.functional.xxx 的类封装，并且nn.Xxx 都继承于一个共同祖先 nn.Module
 nn.Xxx 除了具有 nn.functional.xxx 功能之外，内部附带 nn.Module 相关的属性和方法，eg. train(), eval(), load_state_dict, state_dict
+
+
+
+### torch.nn.functional.interpolate
+
+实现插值和上采样。
+
+[ Pytorch上下采样函数--interpolate()](https://blog.csdn.net/qq_41375609/article/details/103447744)
+
+
 
 ## 初始化
 
@@ -766,12 +925,40 @@ nn.Module利用的也是autograd技术，其主要工作是实现前向传播。
 
 ## 数据处理
 
-针对上述问题，PyTorch提供了torchvision。它是一个视觉工具包，提供了很多视觉图像处理的工具，其中`transforms`模块提供了对PIL `Image`对象和`Tensor`对象的常用操作。
+### opencv
+
+
+
+### PIL.Image
+
+```python
+img = Image.open('./dataset/coco/train2014/COCO_train2014_000000000064.jpg')  # 打开一张图片
+imgGrey = img.convert('L')  # 灰度图
+'''显示图像'''
+img.show()
+imgGrey.show()
+'''保存图像'''
+img.save('img_copy.jpg')
+imgGrey.save('img_gray.jpg')
+```
+
+[ python PIL Image 图像处理基本操作](https://blog.csdn.net/dcrmg/article/details/102963336)
+
+如果要利用visdom显示图像等操作，还是需要将PIL转为tensor，转tensor需要利用`torchvision.transforms.ToTensor`方式，因为visdom支持tensor的image显示。
+
+如果要将PIL转为numpy，则直接利用`np.array()`,就可以将PIL变成numpy，并且数据格式也（c,w,h）自动变为(c,h,w),然后再将其变为BGR格式即可。
+
+
+
+### torchvision.transforms
+
+在计算机视觉中处理的数据集有很大一部分是图片类型的，如果获取的数据是格式或者大小不一的图片，则需要进行归一化和大小缩放等操作，这些是常用的数据预处理方法。如果参与模型训练中的图片数据非常有限，则需要通过对有限的图片数据进行各种变换，如缩小或者放大图片的大小、对图片进行水平或者垂直翻转等，这些都是数据增强的方法。庆幸的是，这些方法在torch.transforms中都能找到，在torch.transforms中有大量的数据变换类，有很大一部分可以用于实现数据预处理（Data Preprocessing）和数据增广（Data Argumentation）。
+
+PyTorch提供了torchvision，它是一个视觉工具包，提供了很多视觉图像处理的工具，其中`transforms`模块提供了对PIL `Image`对象和`Tensor`对象的常用操作。
 
 对PIL Image的操作包括：
 
 - `Scale`：调整图片尺寸，长宽比保持不变
-- 39 1class Person {2public:3    Person(int age, string name) {4        this->age = age;5        this->name = name;6    }7​8    //在类内对成员函数进行声明9    void run() {10        cout << age << endl;11    }12​13    void play();14​15    friend void fun();//声明Person类的友元函数16​17private:18    int age;19    string name;20};21​22//通过作用域操作符::实现play函数23void Person::play() {24    cout << "play" << endl;25}26​27void fun() {28    Person person(2, "kk");29    cout << person.age << endl;30    //友元函数的作用：使得指定的非成员函数能够访问类的私有成员。31}32​33int main() {34    Person p(1, "as");//创建对象35    p.play();36    p.run();37    fun();38​39}C++
 - `Pad`：填充
 - `ToTensor`：将PIL Image对象转成Tensor，会自动将[0, 255]归一化至[0, 1]
 
@@ -782,7 +969,73 @@ nn.Module利用的也是autograd技术，其主要工作是实现前向传播。
 
 如果要对图片进行多个操作，可通过`Compose`函数将这些操作拼接起来，类似于`nn.Sequential`。注意，这些操作定义后是以函数的形式存在，真正使用时需调用它的`__call__`方法，这点类似于`nn.Module`。
 
+#### torchvision.transforms常用变换类
 
+`transforms.Compose`
+
+transforms.Compose类看作一种容器，它能够同时对多种数据变换进行组合。传入的参数是一个列表，列表中的元素就是对载入的数据进行的各种变换操作。
+
+`transforms.Normalize(mean, std)`
+
+这里使用的是标准正态分布变换，这种方法需要使用原始数据的均值（Mean）和标准差（Standard Deviation）来进行数据的标准化，在经过标准化变换之后，数据全部符合均值为0、标准差为1的标准正态分布。计算公式是：`x =  (x-mean(x))/std(x)`
+
+一般来说，mean和std是实现从原始数据计算出来的，对于计算机视觉，更常用的方法是从样本中抽样算出来的或者是事先从相似的样本预估一个标准差和均值。
+
+`transforms.Resize(size)`
+
+对载入的图片数据按照我们的需要进行缩放，传递给这个类的size可以是一个整型数据，也可以是一个类似于 (h ,w) 的序列。如果输入是个(h,w)的序列，h代表高度，w代表宽度，h和w都是int，则直接将输入图像resize到这个(h,w)尺寸，相当于force。如果使用的是一个整型数据，则将图像的短边resize到这个int数，长边则根据对应比例调整，图像的长宽比不变。
+
+`transforms.Scale(size)`
+
+对载入的图片数据我们的需要进行缩放，用法和`torchvision.transforms.Resize`类似。传入的size只能是一个整型数据，size是指缩放后图片最小边的边长。举个例子，如果原图的height>width,那么改变大小后的图片大小是(size*height/width, size)。
+
+`transforms.CenterCrop(size)`
+
+以输入图的中心点为中心点为参考点，按我们需要的大小进行裁剪。传递给这个类的参数可以是一个整型数据，也可以是一个类似于(h,w)的序列。如果输入的是一个整型数据，那么裁剪的长和宽都是这个数值
+
+`transforms.RandomCrop(size)`
+
+用于对载入的图片按我们需要的大小进行随机裁剪。传递给这个类的参数可以是一个整型数据，也可以是一个类似于(h,w)的序列。如果输入的是一个整型数据，那么裁剪的长和宽都是这个数值
+
+`transforms.RandomResizedCrop(size,scale)`
+
+先将给定图像随机裁剪为不同的大小和宽高比，然后缩放所裁剪得到的图像为size的大小。即先随机采集，然后对裁剪得到的图像安装要求缩放，默认scale=(0.08, 1.0)。scale是一个面积采样的范围，假如是一个100\*100的图片，scale = (0.5,1.0)，采样面积最小是0.5\*100\*100=5000，最大面积就是原图大小100\*100=10000。先按照scale将给定图像裁剪，然后再按照给定的输出大小进行缩放。
+
+`transforms.RandomHorizontalFlip`
+
+用于对载入的图片按随机概率进行水平翻转。我们可以通过传递给这个类的参数自定义随机概率，如果没有定义，则使用默认的概率值0.5。
+
+`transforms.RandomVerticalFlip`
+
+用于对载入的图片按随机概率进行垂直翻转。我们可以通过传递给这个类的参数自定义随机概率，如果没有定义，则使用默认的概率值0.5。
+
+`transforms.RandomRotation`
+
+按照degree随机旋转一定角度
+
+```python
+transforms.RandomRotation(
+    degrees,
+    resample=False,
+    expand=False,
+    center=None,
+    fill=None,
+)
+```
+
+degree：加入degree是10，就是表示在（-10，10）之间随机旋转，如果是（30，60），就是30度到60度随机旋转
+resample是重采样的方法
+center表示中心旋转还是左上角旋转
+
+`transforms.ToTensor`
+用于对载入的图片数据进行类型转换，将之前构成PIL图片的数据转换成Tensor数据类型的变量，让PyTorch能够对其进行计算和处理。
+
+`transforms.ToPILImage`
+用于将Tensor变量的数据转换成PIL图片数据，主要是为了方便图片内容的显示
+
+
+
+## Dataloader&DataSet
 
 DataLoader里面并没有太多的魔法方法，它封装了Python的标准库`multiprocessing`，使其能够实现多进程加速。在此提几点关于Dataset和DataLoader使用方面的建议：
 
@@ -790,6 +1043,42 @@ DataLoader里面并没有太多的魔法方法，它封装了Python的标准库`
 2. dataset中应尽量只包含只读对象，避免修改任何可变对象，利用多线程进行操作。
 
 第一点是因为多进程会并行的调用`__getitem__`函数，将负载高的放在`__getitem__`函数中能够实现并行加速。 第二点是因为dataloader使用多进程加载，如果在`Dataset`实现中使用了可变对象，可能会有意想不到的冲突。在多线程/多进程中，修改一个可变对象，需要加锁，但是dataloader的设计使得其很难加锁（在实际使用中也应尽量避免锁的存在），因此最好避免在dataset中修改可变对象。
+
+
+
+### Dataset之ImageFolder
+
+一般来说自己通过Dataset派生数据集的dataset类，但当数据集中所有的文件按文件夹保存，每个文件夹下存储同一个类别的图片，文件夹名为类名，那么就可以使用ImageFolder，方便的制作Dataset
+
+```python
+'''
+假如数据集以以下方式组织
+root/dog/xxx.png
+root/cat/xxx.png
+'''
+
+ImageFolder(root, transform=None, target_transform=None, loader=default_loader)
+"""
+root：在root指定的路径下寻找图片
+transform：对PIL Image进行的转换操作，transform的输入是使用loader读取图片的返回对象
+target_transform：对label的转换
+loader：给定路径后如何读取图片，默认读取为RGB格式的PIL Image对象
+"""
+print(dataset.class_to_idx)  # {'dog': 0, 'cat': 1}
+print(dataset.classes)  # ['dog', 'cat']
+```
+
+在之后利用该dataset创建dataloader后，发现，labels为0,1,2...
+
+- self.classes - 用一个list保存 类名
+- self.class_to_idx - 类名对应的 索引
+- self.imgs - 保存(img-path, class) tuple的list
+
+
+
+`torchvision.datasets.folder.default_loader(path)`
+
+可以看做打开单张图像，返回的是PIL.Image对象
 
 ### dataloader中的重要性采样
 
@@ -826,6 +1115,9 @@ torchvision主要包含三部分：
 - transforms：提供常用的数据预处理操作，主要包括对Tensor以及PIL Image对象的操作。
 
   Transforms中涵盖了大部分对Tensor和PIL Image的常用处理。需要注意的是转换分为两步，第一步：构建转换操作，例如`transf = transforms.Normalize(mean=x, std=y)`，第二步：执行转换操作，例如`output = transf(input)`。另外还可将多个处理操作用Compose拼接起来，形成一个处理转换流程
+  
+- utils:
+  
 
 torchvision还提供了两个常用的函数。一个是`make_grid`，它能将多张图片拼接成一个网格中；另一个是`save_img`，它能将Tensor保存成图片。
 
@@ -945,43 +1237,82 @@ all_data = torch.load('all.pth')
 
 
 
+## argparse
 
 
 
+[python — argparse模块，及Pycharm传递参数给argparse](https://blog.csdn.net/pentiumCM/article/details/104505508)
 
+[python3中argparse模块详解](https://blog.csdn.net/qq_36653505/article/details/83788460)
 
+- 创建`ArgumentParser()`对象
+- 调用`add_argument()`方法添加参数
+- 使用`parse_args()`解析参数 
 
+```python
+import argparse
 
+parser = argparse.ArgumentParser(description='plz input')  # 创建ArgumentParser对象
+"""description:命令行帮助的开始文字，大部分情况下，我们只会用到这个参数"""
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-argparse
-
-tensorboard
-
-loadmodel&test
+parser.add_argument('-o', '--output', action='store_false', help="shows output")
+"""
+'-o', '--output'一个短参数，一个长参数
+action = `store_true` 会将output参数记录为True
+"""
+parser.add_argument('--lr', type=float, default=3e-5, help='select the learning rate, default=1e-3')
+"""default:如果命令行没有出现这个选项，那么使用default指定的默认值"""
+parser.add_argument('--batch_size', type=int, required=True, help='input batch size')
+"""设置required =True后，我们就必须传入该参数，否则就会报错"""
+args = parser.parse_args()  # 使用parse_args()解析函数
+```
 
  
+
+## torchnet
+
+`torchnet`是`torch`的一个框架，它提供了一套抽象概念，旨在鼓励代码复用和模块化编程，其提供了四个重要的类：
+`Dataset`	提供Dataset接口，类似于pytorch
+`Engine`	train/test机器学习算法
+`Meter`	提供了一种在线跟踪重要统计数据的方法
+`Log`	将性能信息或其他模型信息输出到文件
+
+| 方法       | 说明                    |
+| ---------- | ----------------------- |
+| add(value) | 向meter中添加一个值     |
+| reset()    | 重置meter为默认设置nan  |
+| value()    | 获取当前状态下meter的值 |
+
+[torchnet.meter使用教程](https://blog.csdn.net/qq_42730750/article/details/121231662)
+
+## tensor.bmm&tensor.mm&torch.matmul&torch.mul
+
+[torch.bmm()函数解读](https://blog.csdn.net/qq_40178291/article/details/100302375)
+
+[pytorch中tensor.mul()和mm()和matmul()](https://blog.csdn.net/qq_42368281/article/details/121382172)
+
+## tqdm
+
+Tqdm是一个快速，可扩展的Python进度条，可以在 Python 长循环中添加一个进度提示信息，用户只需要封装任意的迭代器 tqdm(iterator)
+
+```python
+from tqdm import tqdm
+"""方式1"""
+for i in tqdm(range(1000)):  
+     #do something
+     pass
+
+for ii, (x, _) in tqdm(enumerate(dataloader)):
+    # ...
+
+"""方式2"""
+from tqdm import trange
+for i in trange(100):
+    #do something
+    pass
+```
+
+
 
 
 
