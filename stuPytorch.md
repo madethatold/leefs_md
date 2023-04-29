@@ -1,60 +1,58 @@
 # 1
 
-## tuple&list
+## torch
 
-tuples和list还有一个区别是tuples通常是存储异质元素（*heterogeneous*）的数据结构，而list通常存储同质元素（*homogeneous*）的数据结构。
-
-```python
-a = (1, 2, 3, 1)  # tuple
-b = [1, 2, 3, 3]  # list
-"""
-tuples具有immutable的属性，意味着tuples内的元素一旦建立就无法更改、删除、排序，
-然而我们还是可以向list和tuples添加数据的。
-"""
-b[0] = 3
-# a[0] = 1  # error
-a += (9,1.5)  # (1, 2, 3, 1, 9, 1.5)
-'''
-tuples是immutable，list是mutable的，所以我们可以将tuples用作dictionary的key，但是list不可以
-'''
-c = {a:1}
-```
-
-[python 列表，元组，字典，集合，字符串相互转换 - 果果的文章 - 知乎 ](https://zhuanlan.zhihu.com/p/82703713)
-
-这里有一个很常见的函数，eval函数就是实现list、dict、tuple与str之间的转化，同样str函数把list，dict，tuple转为为字符串。
-
-
-
-
-
-list有一个很常见的用法 *list
+`torch.set_default_tensor_type(t)`
 
 ```python
-def add(a, b):
-    return a + b
-data = [4, 3]
-print(add(*data))
-print(add(data[0], data[1]))
-# 等价于 print add(4, 3)
+import torch
+
+# 设置默认张量类型为GPU上的浮点型张量
+torch.set_default_tensor_type(torch.cuda.FloatTensor)
+
+# 创建一个默认类型的张量
+a = torch.randn(3, 3)
+print(a.type())  # 输出为torch.cuda.FloatTensor
+
+# 创建一个CPU上的张量
+b = torch.randn(3, 3).cpu()
+print(b.type())  # 输出为torch.FloatTensor
+
+# 再次创建一个默认类型的张量
+c = torch.randn(3, 3)
+print(c.type())  # 输出为torch.cuda.FloatTensor
+
 ```
 
 
 
-### namedTuple
-
-namedtuple是继承自tuple的子类。namedtuple创建一个和tuple类似的对象，而且对象拥有可访问的属性。
+`torch.numel(input)->int`
 
 ```python
-User = namedtuple('feature', ['name', 'sex', 'age'])
-u = User(name='lee', sex='male', age=22)
-print(u)  # feature(name='lee', sex='male', age=22)
-print(u.age)  # 22
-u = u._replace(age=12)  # 修改对象的属性
-print(u)  # feature(name='lee', sex='male', age=12)
-dict_u = u._asdict()  # 将User对象转为字典
-print(type(dict_u), dict_u)  # <class 'dict'> {'name': 'lee', 'sex': 'male', 'age': 12}
+a = torch.randn(3, 4)
+print(a)  # 输出张量的值
+print(torch.numel(a))  # 输出张量中元素的总数 12
+print(a.shape)  # 输出张量的形状
+print(a.size())  # 输出张量的形状
+print(a.numel())  # 输出张量中元素的总数
 ```
+
+
+
+`torch.set_printoptions(precision=None, threshold=None, edgeitems=None, linewidth=None, profile=None)`
+
+设置打印张量时的格式和精度。它的参数是一系列关键字参数，可以用来设置不同的选项。
+
+- precision：设置打印浮点数的精度，默认为8位。
+- threshold：设置打印张量时省略的元素数量，默认为1000。
+- edgeitems：设置打印张量时显示的边缘元素数量，默认为3。
+- linewidth：设置打印张量时每行的字符数，默认为80
+
+
+
+
+
+
 
 
 
@@ -63,7 +61,7 @@ print(type(dict_u), dict_u)  # <class 'dict'> {'name': 'lee', 'sex': 'male', 'ag
 ### 指定形状创建
 
 ```python
-a = t.Tensor(2, 3)
+a = torch.Tensor(2, 3)
 ```
 
 ### 使用numpy创建
@@ -116,6 +114,8 @@ h = torch.linspace(start=1,end=10,steps=6)
 # tensor([ 1.0000,  2.8000,  4.6000,  6.4000,  8.2000, 10.0000])
 
 k = torch.randperm(5)  # tensor([4, 0, 2, 3, 1])
+
+j = torch.eye(3)
 ```
 
 ### Tensor-tensor
@@ -143,10 +143,22 @@ print(a.size())  # torch.Size([2, 3])
 print(a.numel())  # 6
 print(a.shape)  # torch.Size([2, 3])
 
+
 a = torch.arange(0, 6)
 b = a.view(3, -1)  # 修改b中的值，a中的值也跟着改变
-c = a.unsqueeze(1)  # torch.Size([2, 1, 3])
-d = c.squeeze()  # 把所有维度为“1”的压缩，或者指定压缩某一维度的1
+"""尽量使用reshape"""
+e = torch.arange(0,16).reshape(4,4)
+
+
+# 创建一个形状为(2,2)的张量
+a = torch.ones(2, 2)
+b = a.unsqueeze(dim=1)  # torch.Size([2, 1, 2])
+c = a.unsqueeze(dim=0)  # torch.Size([1, 2, 2])
+# 在原来的张量上增加一个维度
+a.unsqueeze_(dim=1)
+print(a)
+d = a.squeeze()  # 把所有维度为“1”的压缩，或者指定压缩某一维度的1
+
 
 '''
 resize是另一种可用来调整size的方法，但与view不同，它可以修改tensor的大小。
@@ -170,8 +182,29 @@ tensor([[0.5203, 0.2636]])
 tensor([0.5203, 0.2636])
 '''
 
-e = torch.arange(0,16).reshape(4,4)
-index = torch.LongTensor
+
+a = torch.ones(2, 2)
+c = torch.cat((a, a), dim=1)
+d = torch.cat((a, a), dim=0)
+print(c)
+'''
+tensor([[1., 1., 1., 1.],
+        [1., 1., 1., 1.]])
+'''
+print(d)
+'''
+tensor([[1., 1.],
+        [1., 1.],
+        [1., 1.],
+        [1., 1.]])
+'''
+e, f = torch.chunk(c, chunks=2,dim=0)
+print(e)
+print(f)
+'''
+tensor([[1., 1., 1., 1.]])
+tensor([[1., 1., 1., 1.]])
+'''
 ```
 
 
@@ -319,6 +352,12 @@ b = a.t()
 b.is_contiguous()
 ```
 
+### tensor.bmm&tensor.mm&torch.matmul&torch.mul
+
+[torch.bmm()函数解读](https://blog.csdn.net/qq_40178291/article/details/100302375)
+
+[pytorch中tensor.mul()和mm()和matmul()](https://blog.csdn.net/qq_42368281/article/details/121382172)
+
 ## Tensor类型
 
 ![image-20230323221848943](./pic/image-20230323221848943.png)
@@ -336,49 +375,61 @@ b = a.float()  # 把a转成FloatTensor，等价于b=a.type(torch.FloatTensor)
 
 ## Tensor底层存储
 
-
-
 tensor分为头信息区(Tensor)和存储区(Storage)，信息区主要保存着tensor的形状（size）、步长（stride）、数据类型（type）等信息，而真正的数据则保存成连续数组。由于数据动辄成千上万，因此信息区元素占用内存较少，主要内存占用则取决于tensor中元素的数目，也即存储区的大小。
 
 一般来说一个tensor有着与之相对应的storage, storage是在data之上封装的接口，便于使用，而不同tensor的头信息一般不同，但却可能使用相同的数据。绝大多数操作并不修改tensor的数据，而只是修改了tensor的头信息。这种做法更节省内存，同时提升了处理速度。在使用中需要注意。 此外有些操作会导致tensor不连续，这时需调用`tensor.contiguous`方法将它们变成连续的数据，该方法会使数据复制一份，不再与原来的数据共享storage。
 
-## autograd
+## requires_grad
+
+当我们创建一个张量 (tensor) 的时候，如果没有特殊指定的话，那么这个张量是默认是**不需要**求导的。我们可以通过 `tensor.requires_grad` 来检查一个张量是否需要求导。
+
+在张量间的计算过程中，如果在所有输入中，有一个输入需要求导，那么输出一定会需要求导；相反，只有当所有输入都不需要求导的时候，输出才会不需要。
+
+我们在pytorch构建神经网络时，我们的输入数据以及target都是不设置`requires_grad的，因为我们构建的model所有参数是默认求导的，因此，网络的输出一定是需要求导的。我们的网络参数其实也是可以设置为不求导的，这一点是有很大用处的，例如迁移学习中，将一个预训练好的模型冻结一部分网络参数，这些层的参数在训练过程中就不再更新，只更新我们设置的fc层的参数。
 
 ```python
-a = torch.randn(3, 4, requires_grad=True)
-# a = torch.randn(3,4).requires_grad_()  # 效果同上
-print(a.requires_grad)  # True
+model = torchvision.models.resnet18(pretrained=True)
+for param in model.parameters():
+    param.requires_grad = False
 
-b = torch.zeros((3, 4), requires_grad=True)
-c = a.add(b)
-d = c.sum()
-d.backward()
-print(a.grad)
-'''
-tensor([[1., 1., 1., 1.],
-        [1., 1., 1., 1.],
-        [1., 1., 1., 1.]])
-'''
-print(c.requires_grad)  # True
-# c.grad是None, 因c不是叶子节点，它的梯度是用来计算a的梯度
-# 所以虽然c.requires_grad = True,但其梯度计算完之后即被释放
+# 用一个新的 fc 层来取代之前的全连接层
+# 因为新构建的 fc 层的参数默认 requires_grad=True
+model.fc = nn.Linear(512, 100)
+
+# 只更新 fc 层的参数
+optimizer = optim.SGD(model.fc.parameters(), lr=1e-2, momentum=0.9)
+
+# 通过这样，我们就冻结了 resnet 前边的所有层，
+# 在训练过程中只更新最后的 fc 层中的参数。
 ```
 
-变量的`requires_grad`属性默认为False，如果某一个节点requires_grad被设置为True，那么所有依赖它的节点`requires_grad`都是True。
+## torch.no_grad()
 
-在PyTorch中计算图的特点可总结如下：
+当我们对模型进行验证时，无需计算模型参数的导数，可以将这部分代码放在`with torch.no_grad():` 之中，减少可能存在的计算以及内存消耗。
 
-- autograd根据用户对variable的操作构建其计算图。对变量的操作抽象为`Function`。
-- 对于那些不是任何函数(Function)的输出，由用户创建的节点称为叶子节点，叶子节点的`grad_fn`为None。叶子节点中需要求导的variable，具有`AccumulateGrad`标识，因其梯度是累加的。
-- variable默认是不需要求导的，即`requires_grad`属性默认为False，如果某一个节点requires_grad被设置为True，那么所有依赖它的节点`requires_grad`都为True。
-- variable的`volatile`属性默认为False，如果某一个variable的`volatile`属性被设为True，那么所有依赖它的节点`volatile`属性都为True。volatile属性为True的节点不会求导，volatile的优先级比`requires_grad`高。
-- 多次反向传播时，梯度是累加的。反向传播的中间缓存会被清空，为进行多次反向传播需指定`retain_graph`=True来保存这些缓存。
-- 非叶子节点的梯度计算完之后即被清空，可以使用`autograd.grad`或`hook`技术获取非叶子节点的值。
-- variable的grad与data形状一致，应避免直接修改variable.data，因为对data的直接操作无法利用autograd进行反向传播
-- 反向传播函数`backward`的参数`grad_variables`可以看成链式求导的中间结果，如果是标量，可以省略，默认为1
-- PyTorch采用动态图设计，可以很方便地查看中间层的输出，动态的设计计算图结构。
+## CPU and GPU
 
-## Pytorch中.detach()与.data的用法
+`tensor.cuda()` 和 `tensor.to(device)`这二者在设备为GPU时，没有什么区别，但是后者较为方便。我们在代码首部指定设备就可以直接使用了：
+
+```python
+device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+
+a = torch.rand([3,3]).to(device)
+```
+
+但是在GPU上的张量，要转为numpy是需要将张量先转换到CPU上的，**因为Numpy 是 CPU-only 的**。
+
+```python
+x = torch.rand([3, 3], device='cuda')
+x_ = x.cpu().numpy()
+"""当需要对一个要求求导的张量转换numpy时，一定要先取到一个数据副本再转为numpy"""
+y = torch.rand([3, 3], requires_grad=True, device='cuda')
+y_ = y.cpu().detach().numpy()
+```
+
+
+
+## .detach()&.data&.item()
 
 Tensor.data和Tensor.detach()一样， 都会返回一个新的Tensor， 这个Tensor和原来的Tensor共享内存空间，一个改变，另一个也会随着改变，且都会设置新的Tensor的requires_grad属性为False。现在.data仍保留，但建议使用 .detach()。
 
@@ -388,7 +439,8 @@ Tensor.data和Tensor.detach()一样， 都会返回一个新的Tensor， 这个T
 '''以下是.data'''
 a = torch.tensor([1, 2, 3.], requires_grad=True)
 out = a.sigmoid()
-c = out.data  # 需要走注意的是，通过.data “分离”得到的的变量会和原来的变量共用同样的数据，而且新分离得到的张量是不可求导的，c发生了变化，原来的张量也会发生变化
+c = out.data  
+# 需要注意的是，通过.data “分离”得到的的变量会和原来的变量共用同样的数据，而且新分离得到的张量是不可求导的，c发生了变化，原来的张量也会发生变化
 c.zero_()  # 改变c的值，原来的out也会改变
 print(c.requires_grad)  # False
 print(c)  # tensor([0., 0., 0.])
@@ -400,7 +452,8 @@ print(a.grad)  # tensor([0., 0., 0.])
 '''以下是.detach()'''
 a = torch.tensor([1, 2, 3.], requires_grad=True)
 out = a.sigmoid()
-c = out.detach()  # 需要走注意的是，通过.detach() “分离”得到的的变量会和原来的变量共用同样的数据，而且新分离得到的张量是不可求导的，c发生了变化，原来的张量也会发生变化
+c = out.detach()  
+# 需要走注意的是，通过.detach() “分离”得到的的变量会和原来的变量共用同样的数据，而且新分离得到的张量是不可求导的，c发生了变化，原来的张量也会发生变化
 c.zero_()  # 改变c的值，原来的out也会改变
 print(c.requires_grad)  # False
 print(c)  # tensor([0., 0., 0.])
@@ -419,17 +472,124 @@ Tensor.data和Tensor.detach()一样， 都会返回一个新的Tensor， 这个T
 
 
 
+BTW,  .data返回的是一个tensor,而.item()返回的是一个具体的数值。注意：对于元素不止一个的tensor列表，使用item()会报错。如果想把含多个元素的 tensor 转换成 Python list 的话，要使用 `tensor.tolist()`。
+
+```python
+x  = torch.randn(1, requires_grad=True, device='cuda')
+print(x)
+# tensor([-0.4717], device='cuda:0', requires_grad=True)
+
+y = x.item()
+print(y, type(y))
+# -0.4717346727848053 <class 'float'>
+
+x = torch.randn([2, 2])
+y = x.tolist()
+print(y)
+```
+
+## tensor.copy_&tensor.clone
+
+创建一个tensor与源tensor有相同的shape，dtype和device，不共享内存地址，但新tensor的梯度会叠加在源tensor上。总之就是不共享内存，两个tensor的值无联系，但是梯度有联系。（应该把clone()理解成一个“函数”，而不能把b理解成一个完全独立的节点。）
+
+```python
+a = torch.tensor([1.,2.,3.],requires_grad=True)
+b = a.clone()
+
+print(a.data_ptr()) # 3004830353216
+print(b.data_ptr()) # 3004830353344 内存地址不同
+
+print(a) # tensor([1., 2., 3.], requires_grad=True)
+print(b) # tensor([1., 2., 3.], grad_fn=<CloneBackward>)  复制成功
+print('-'*30)
+
+c = a * 2
+d = b * 3
+
+c.sum().backward() 
+print(a.grad) # tensor([2., 2., 2.])
+
+d.sum().backward() 
+print(a.grad) # tensor([5., 5., 5.]) # 源tensor的梯度叠加了新tensor的梯度
+print(b.grad) # None # 此时复制出来的节点已经不属于叶子节点，因此不能直接得到其梯度
+```
+
+copy\_()函数完成与clone()函数类似的功能，但也存在区别。调用copy\_()的对象是目标tensor，参数是复制操作from的tensor，最后会返回目标tensor；而clone()的调用对象为源tensor，返回一个新tensor。当然clone()函数也可以采用torch.clone()调用，将源tensor作为参数。
+
+copy\_()函数的调用对象既然是目标tensor，那么就需要我们预先已有一个目标tensor(clone()就不需要)，源tensor的尺度需要可以广播到目标tensor的尺度。
+
+总之就是二者不共享内存，值无联系，但是梯度是关联的
+
+```python
+import torch
+
+a = torch.tensor([1., 2., 3.],requires_grad=True)
+b = torch.empty_like(a).copy_(a)
+
+print(a.data_ptr()) # 1597834661312
+print(b.data_ptr()) # 1597834659712 # 内存地址不同
+
+print(a) # tensor([1., 2., 3.], requires_grad=True)
+print(b) # tensor([1., 2., 3.], grad_fn=<CopyBackwards>) # 复制成功
+
+c = a * 2
+d = b * 3
+
+c.sum().backward()
+print(a.grad) # tensor([2., 2., 2.])
+
+d.sum().backward()
+print(a.grad) # tensor([5., 5., 5.]) # 源tensor梯度累加了
+print(b.grad) # None # 复制得到的节点依然不是叶子节点
+```
 
 
-btw，.data返回的是一个tensor,而.item()返回的是一个具体的数值。注意：对于元素不止一个的tensor列表，使用item()会报错。
+
+## cuda
+
+```python
+print(torch.cuda.is_available())  # True
+print(torch.cuda.current_device())  # 0
+print(torch.cuda.current_stream())  # <torch.cuda.Stream device=cuda:0 cuda_stream=0x0>
+print(torch.cuda.device(0))  # <torch.cuda.device object at 0x7f44048f9b80>
+print(torch.cuda.device_count())  # 1
+x = torch.randn(3, 3).cuda()
+print(torch.cuda.device_of(x))  # <torch.cuda.device_of object at 0x7f3e73d96b80>
+
+'''指定设备'''
+device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+x = x.to(device)
+print(x)
+# tensor([[-0.9923,  0.4727, -0.0313],
+#         [ 0.4622, -0.0660,  0.5605],
+#         [ 0.9084, -0.0309, -0.3919]], device='cuda:0')
+```
 
 
 
 # 2
 
+## nn.Parameter
+
+`torch.nn.Parameter()`是一个类，用于将张量包装成可训练的参数。它的作用是告诉PyTorch，这个张量是模型中需要训练的参数，需要在反向传播过程中更新它的值。
+
+```python
+# 创建一个形状为(3, 4)的张量
+a = torch.randn(3, 4)
+print(a.requires_grad)  # 输出False
+
+# 将张量包装成可训练参数
+p = torch.nn.Parameter(a)
+print(p.requires_grad)  # 输出True
+```
+
+
+
+
+
 ## nn.Module
 
-torch.nn的核心数据结构是`Module`，它是一个抽象概念，既可以表示神经网络中的某个层（layer），也可以表示一个包含很多层的神经网络。在实际使用中，最常见的做法是继承`nn.Module`，撰写自己的网络/层
+torch.nn的核心数据结构是`Module`，它是一个抽象概念，既可以表示神经网络中的某个层（layer），也可以表示一个包含很多层的神经网络。在实际使用中，最常见的做法是继承`nn.Module`，撰写自己的网络/层。
 
 `nn.Module`其实是 PyTorch 体系下所有神经网络模块的基类,一般有一个基类来定义接口，通过继承来处理不同维度的 input，如：
 
@@ -437,6 +597,20 @@ torch.nn的核心数据结构是`Module`，它是一个抽象概念，既可以�
 2. MaxPool1d，MaxPool2d，MaxPool3d 继承自 _MaxPoolNd 等
 
 每一个类都有一个对应的 nn.functional 函数，类定义了所需要的 arguments 和模块的 parameters，在 forward 函数中将 arguments 和 parameters 传给 nn.functional 的对应函数来实现 forward 功能。
+
+
+
+### add_module(name, module)
+
+```python
+class model(nn.Module):
+    def __init__(self):
+        super(model, self).__init__()
+        self.add_module('conv', nn.Conv2d(2, 3, 3, 1, 1))
+        # self.conv = nn.Conv2d(2, 3, 3, 1, 1)  与上等同
+```
+
+
 
 ### \__init__
 
@@ -460,9 +634,9 @@ def __init__(self):
 
 - `_parameters`：字典，保存用户直接设置的parameter，`self.param1 = nn.Parameter(torch.randn(3, 3))`会被检测到，在字典中加入一个key为'param'，value为对应parameter的item。而self.submodule = nn.Linear(3, 4)中的parameter则不会存于此。
 - `_modules`：子module，通过`self.submodel = nn.Linear(3, 4)`指定的子module会保存于此。
-- `_buffers`：缓存。如batchnorm使用momentum机制，每次前向传播需用到上一次前向传播的结果。
+- `_buffers`：缓存。如batchnorm使用momentum机制，每次前向传播需用到上一次前向传播的结果。如果要给模块增加 buffer，self.register_buffer 是唯一的方式
 - `_backward_hooks`与`_forward_hooks`：钩子技术，用来提取中间变量，类似variable的hook。
-- `training`：BatchNorm与Dropout层在训练阶段和测试阶段中采取的策略不同，通过判断training值来决定前向传播策略。
+- `training`：nn.Module 通过 self.train() 和 self.eval() 来修改训练和测试状态，其中 self.eval 直接调用了 self.train(False)，而 self.train() 会修改 self.training 并通过 self.children() 来调整所有子模块的状态。
 
 上述几个属性中，`_parameters`、`_modules`和`_buffers`这三个字典中的键值，都可以通过`self.key`方式获得，效果等价于`self._parameters['key']`.
 
@@ -552,13 +726,20 @@ nn.Module 实现了如下 8 个常用函数将模块转变成 float16 等类型�
 7. bfloat16：将所有浮点类型的 parameters 和 buffer 转变成 bfloat16 类型
 8. to：移动模块或/和改变模块的类型
 
-这些函数的功能最终都是通过 `self._apply(function)` 来实现的， function 一般是 lambda 表达式或其他自定义函数。因此，用户其实也可以通过 self._apply(function) 来实现一些特殊的转换。self._apply() 函数实际上做了如下 3 件事情，最终将 function 完整地应用于整个模块。
+```python
+model.cpu()  # 将模型的参数和缓存转移到CPU上
+model.cuda() # 将模型的参数和缓存转移到GPU上
+model = model.half()  # 将模型的参数和缓存转变成float16类型
+model.to('cuda').half() # 将模型的参数和缓存转移到GPU上，并将其转变成float16类型
+```
+
+这些函数的功能最终都是通过 `self._apply(function)` 来实现的， function 一般是 lambda 表达式或其他自定义函数。因此，用户其实也可以通过 self.\_apply(function) 来实现一些特殊的转换。self._apply() 函数实际上做了如下 3 件事情，最终将 function 完整地应用于整个模块。
 
 1. 通过 self.children() 进行递归的调用
 2. 对 self._parameters 中的参数及其 gradient 通过 function 进行处理
 3. 对 self._buffers 中的 buffer 逐个通过 function 来进行处理
 
-nn.Module 还实现了一个 apply 函数，与 _apply() 函数不同的是，apply 函数只是简单地递归调用了 self.children() 去处理自己以及子模块，apply 函数和 _apply 函数的区别在于，_apply() 是专门针对 parameter 和 buffer 而实现的一个“仅供内部使用”的接口，但是 apply 函数是“公有”接口。
+nn.Module 还实现了一个 apply 函数，与 \_apply() 函数不同的是，apply 函数只是简单地递归调用了 self.children() 去处理自己以及子模块，apply 函数和 _apply 函数的区别在于，_apply() 是专门针对 parameter 和 buffer 而实现的一个“仅供内部使用”的接口，但是 apply 函数是“公有”接口。
 
 
 
@@ -597,11 +778,193 @@ nn.Module 中的常用函数包括下面 8 个，他们都会返回一个迭代�
 7. modules：调用 self.named_modules 并返回各个 module 但不返回 name
 8. named_modules：返回 self._modules 下的 name 和 module 元组，并递归调用和返回 module.named_modules
 
+### hooks
 
+在PyTorch的nn.module中，hooks是一种用于在模型训练或推理过程中，对模型中的某些层或参数进行监控、修改或记录的机制。hooks可以在模型的前向传播、反向传播或参数更新时被调用，可以用于实现各种功能，如可视化、梯度裁剪、权重衰减等。
+
+nn.module中的hooks主要有以下几种：
+
+1. forward hook：前向传播hook，可以在模型的前向传播过程中获取某些层的输出或中间结果，可以用于可视化、特征提取等。
+2. backward hook：反向传播hook，可以在模型的反向传播过程中获取某些层的梯度，可以用于梯度裁剪、梯度统计等。
+3. register_forward_pre_hook：前向传播预处理hook，可以在模型的前向传播之前对输入进行处理，可以用于数据增强、输入标准化等。
+4. register_backward_hook：反向传播hook，可以在模型的反向传播过程中对梯度进行处理，可以用于梯度裁剪、梯度统计等。
+5. register_parameter_hook：参数hook，可以在模型的参数更新过程中对参数进行处理，可以用于权重衰减、参数初始化等。
+6. register_buffer_hook：缓存hook，可以在模型的缓存更新过程中对缓存进行处理，可以用于缓存初始化、缓存统计等。
+
+```python
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.conv1 = nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1)
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=1)
+        self.relu = nn.ReLU(inplace=True)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.relu(x)
+        x = self.conv2(x)
+        x = self.relu(x)
+        return x
+
+
+def forward_hook(module, input, output):
+    print('Input shape:',input[0].shape)
+    # input参数是一个元组，包含了模型输入的所有张量。
+    print('Output shape:', output.shape)
+
+
+def backward_hook(module, grad_input, grad_output):
+    print('Gradient of input:', grad_input)
+    print('Gradient of output:', grad_output)
+
+
+def forward_pre_hook(module, input):
+    print('Input shape:', input[0].shape)
+    # 在使用register_forward_pre_hook时，input参数是一个元组，包含了模型输入的所有张量。
+
+
+model = Model()
+model.conv1.register_forward_hook(forward_hook)
+model.conv2.register_backward_hook(backward_hook)
+model.conv1.register_forward_pre_hook(forward_pre_hook)
+input = torch.randn(1, 3, 32, 32)
+output = model(input)
+output.mean().backward()
+
+```
+
+
+
+
+
+
+
+### hook的应用
+
+
+
+自定义一个包装类，以在我们自定义的网络执行时，获取网络中间层的每一层输出形状，这个包装类可以不同的模型调试。
+
+```python
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.conv1 = nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1)
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=1)
+        self.relu = nn.ReLU(inplace=True)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.relu(x)
+        x = self.conv2(x)
+        x = self.relu(x)
+        return x
+
+
+class VerboseExecution(nn.Module):
+    def __init__(self, model: nn.Module):
+        super().__init__()
+        self.model = model
+        for name, layer in self.model.named_children():
+            layer._name_ = name
+            layer.register_forward_hook(
+                lambda layer, input, output: print(f"{layer._name_}:{output.shape}")
+            )
+
+    def forward(self, x):
+        return self.model(x)
+
+
+model = Model()
+verbose_model = VerboseExecution(model)
+_ = verbose_model(torch.randn(1, 3, 32, 32))
+'''
+conv1:torch.Size([1, 16, 32, 32])
+relu:torch.Size([1, 16, 32, 32])
+conv2:torch.Size([1, 32, 32, 32])
+relu:torch.Size([1, 32, 32, 32])
+'''
+```
+
+特征提取
+
+```python
+class FeatureExtracter(nn.Module):
+    def __init__(self, model, layers: Iterable[str]):
+        super().__init__()
+        self.model = model
+        self.layers = layers
+        self._features = {layer: torch.empty(0) for layer in layers}
+
+        for layer_id in layers:
+            layer = dict([*self.model.named_modules()])[layer_id]
+            layer.register_forward_hook(self.save_outputs_hook(layer_id))
+
+    def save_outputs_hook(self, layer_id: str) -> Callable:
+        # Callable 用于指定 save_outputs_hook 方法返回的函数的类型,也就是fn是可调用的对象
+        def fn(_, __, output):
+            self._features[layer_id] = output
+
+        return fn
+
+    def forward(self, x) -> Dict[str, Tensor]:
+        _ = self.model(x)
+        return self._features
+
+
+resnet_features = FeatureExtracter(Model(), layers=["conv1", "conv2"])
+features = resnet_features(torch.randn(1, 3, 32, 32))
+print({name: output.shape for name, output in features.items()})
+# {'conv1': torch.Size([1, 16, 32, 32]), 'conv2': torch.Size([1, 32, 32, 32])}
+```
+
+梯度裁剪
+
+```python
+def gradient_clipper(model: nn.Module, val: float) -> nn.Module:
+    for parameter in model.parameters():
+        parameter.register_hook(lambda grad: grad.clamp_(-val, val))
+    
+    return model
+```
 
 
 
 ## ModuleList/Sequential/ModuleDict快速搭建
+
+```python
+'''
+Sequential方式
+'''
+net1 = nn.Sequential(
+    nn.Linear(784, 256),
+    nn.ReLU(),
+    nn.Linear(256, 10)
+)
+
+net2 = nn.Sequential(
+    collections.OrderedDict([
+        ('fc1', nn.Linear(784, 256)),
+        ('relu1', nn.ReLU()),
+        ('fc2', nn.Linear(256, 10))
+    ])
+)
+
+
+'''
+ModuleList方式
+'''
+net3 = nn.ModuleList([nn.Linear(784, 256), nn.ReLU()])
+net3.append(nn.Linear(256, 10))
+
+
+net4 = nn.ModuleDict({
+    'linear1': nn.Linear(784, 256),
+    'Relu': nn.ReLU(),
+    'linear2': nn.Linear(256, 10)
+})
+net4['output'] = nn.ReLU()
+```
 
 
 
@@ -703,6 +1066,48 @@ torch.nn.BatchNorm2d(num_features, eps=1e-05, momentum=0.1, affine=True, track_r
 
 
 
+### torch.nn.ConvTranspose2d
+
+
+
+`torch.nn.ConvTranspose2d(in_channels, out_channels, kernel_size, stride=1, padding=0, output_padding=0, groups=1, bias=True）`
+
+输入图像通过卷积操作提取特征后，输出的尺寸常会变小，而有时我们需要将图像恢复到原来的尺寸以便进行进一步的计算，那么我们需要实现图像由小分辨率到大分辨率的映射的操作，叫做上采样(Upsample)。反卷积操作就是卷积操作的不完全逆过程。
+
+首先给出一个卷积的实例：
+
+4\*4的输入；无padding；stride=1；输出2\*2
+
+![image-20230411211932418](pic/image-20230411211932418.png)
+
+那么反卷积的过程如下：
+
+kerelSize=3；stride=2；padding=1
+
+当设置的stride>1时，对输入图像进行插值,对于输入图像的每相邻两行/两列中间加(stride-1)行/(stride-1)列 0,因此加0的行数为 (stride - 1) \* (height - 1)，插值完的结果是这样的：
+$$
+height_{new} = height + (stride - 1) * (height - 1)
+$$
+![image-20230411215256232](pic/image-20230411215256232.png)
+
+
+
+进行卷积操作得到反卷积结果：
+
+此时的卷积操作有一些注意的：此时的`stride`恒为1，此时的`padding = (kernelSize - padding - 1)`
+
+![image-20230411215726190](pic/image-20230411215726190.png)
+
+
+
+这个公式直接带，不用管上面的过程。
+$$
+height_{out} =( height_{in} - 1)*stride - 2 * padding + kernelSize
+$$
+带入上面例子可证
+
+
+
 ## 激活函数
 
 ## 损失函数
@@ -713,7 +1118,15 @@ PyTorch将深度学习中常用的优化方法全部封装在`torch.optim`中，
 
 ## nn.functional
 
-nn中还有一个很常用的模块：`nn.functional`，nn中的大多数layer，在`functional`中都有一个与之相对应的函数。`nn.functional`中的函数和`nn.Module`的主要区别在于，用nn.Module实现的layers是一个特殊的类，都是由`class layer(nn.Module)`定义，会自动提取可学习的参数。而`nn.functional`中的函数更像是纯函数，由`def function(input)`定义。
+### torch.nn&nn.functional
+
+torch.nn 这个模块下面存的主要是 Module类.以torch.nn.Conv2d为例, 也就是说 torch.nn.Conv2d这种"函数"其实是个 Module类,在实例化类后会初始化2d卷积所需要的参数. 这些参数会在你做forward和 backward之后根据loss进行更新,所以通常存放在定义模型的 _init_() 中.
+
+torch.nn.functional.x 为函数,与torch.nn不同, torch.nn.x中包含了初始化需要的参数等 attributes 而torch.nn.functional.x则需要把相应的weights 作为输入参数传递,才能完成运算, 所以用torch.nn.functional创建模型时需要创建并初始化相应参数，通常放在forward中。
+
+
+
+`nn.functional`，nn中的大多数layer，在`functional`中都有一个与之相对应的函数。`nn.functional`中的函数和`nn.Module`的主要区别在于，用nn.Module实现的layers是一个特殊的类，都是由`class layer(nn.Module)`定义，会自动提取可学习的参数。而`nn.functional`中的函数更像是纯函数，由`def function(input)`定义。
 
 ```python
 input = torch.randn(2, 3)
@@ -836,23 +1249,275 @@ handle.remove()
 
 ## 保存和恢复模型
 
+## torch.autograd
+
+torch.tensor 具有如下属性：
+
+- 查看 是否可以求导 `requires_grad`
+- 查看 运算名称 `grad_fn`
+- 查看 是否为叶子节点 `is_leaf`
+- 查看 导数值 `grad`
+
+当我们想要对某个`Tensor`变量求梯度时，需要先指定`requires_grad`属性为`True`，指定方式主要有两种：
+
+```python
+x = torch.tensor(1.).requires_grad_() 
+x = torch.tensor(1., requires_grad=True) 
+```
 
 
-## autograd扩展之autograd.Function
+
+### 求导之backward& autograd.grad
+
+`backward`方式
+
+```python
+x = torch.tensor(2., requires_grad=True)
+
+a = torch.add(x, 1)
+b = torch.add(x, 2)
+y = torch.mul(a, b)
+
+y.backward()
+
+print("requires_grad: ", x.requires_grad, a.requires_grad, b.requires_grad, y.requires_grad)
+print("is_leaf: ", x.is_leaf, a.is_leaf, b.is_leaf, y.is_leaf)
+print("grad: ", x.grad, a.grad, b.grad, y.grad)
+'''
+requires_grad:  True True True True
+is_leaf:  True False False False
+grad:  tensor(7.) None None None
+'''
+```
+
+`autograd.grad`方式
+
+`autograd.grad`完整的返回值其实是一个元组
+
+```python
+"""backward方式"""
+x = torch.tensor(2., requires_grad=True)
+y = torch.tensor(3., requires_grad=True)
+
+z = x * x * y
+
+z.backward()
+print(x.grad, y.grad)
+
+"""autograd方式"""
+x = torch.tensor(2.).requires_grad_()
+y = torch.tensor(3.).requires_grad_()
+
+z = x * x * y
+
+grad_x = torch.autograd.grad(outputs=z, inputs=x)
+print(grad_x[0])
+```
+
+上面的代码中，autograd方式下，无法再次求y的导数，因为`autograd.grad`在计算一次梯度后图就被释放了，如果想要保留，需要添加`retain_graph=True`,如下：
+
+```python
+x = torch.tensor(2.).requires_grad_()
+y = torch.tensor(3.).requires_grad_()
+
+z = x * x * y
+
+grad_x = torch.autograd.grad(outputs=z, inputs=x, retain_graph=True)
+grad_y = torch.autograd.grad(outputs=z, inputs=y)
+
+print(grad_x[0], grad_y[0])
+>>>tensor(12.) tensor(4.)
+```
+
+
+
+如果要对一个叶子张量求二阶导数，我们不能够这样操作：
+
+```python
+grad_x = torch.autograd.grad(outputs=z, inputs=x, retain_graph=True)
+grad_xx = torch.autograd.grad(outputs=grad_x, inputs=x)
+```
+
+因为虽然`retain_graph=True`保留了计算图以及中间变量的梯度，但没有保存`grad_x`的运算方式，需要使用`create_graph=True`在保留原图的基础上再建立额外的求导计算图，也就是需要将`dz/dx=2xy这样的操作保留。`
+
+如下:
+
+```python3
+# autograd.grad() + autograd.grad()
+x = torch.tensor(2.).requires_grad_()
+y = torch.tensor(3.).requires_grad_()
+
+z = x * x * y
+
+grad_x = torch.autograd.grad(outputs=z, inputs=x, create_graph=True)
+grad_xx = torch.autograd.grad(outputs=grad_x, inputs=x)
+
+print(grad_xx[0])
+>>>tensor(6.)
+```
+
+
+
+使用backward求二阶导数：
+
+```
+x = torch.tensor(2.).requires_grad_()
+y = torch.tensor(3.).requires_grad_()
+
+z = x * x * y
+
+"""先autograd后backward"""
+grad_x = torch.autograd.grad(outputs=z, inputs=x, create_graph=True)
+grad_x[0].backward()
+print(x.grad)
+
+"""先backward后autograd"""
+z.backward(create_graph=True)
+grad_xx = torch.autograd.grad(outputs=x.grad, inputs=x)
+print(grad_xx[0])
+
+"""两次backward"""
+z.backward(create_graph=True)
+x.grad.data.zero_()  # 如果没有这一句梯度清零，两次backward得到的是梯度累加的结果也就是12+6=18
+x.grad.backward()
+print(x.grad)  # tensor(6., grad_fn=<CopyBackwards>)
+```
+
+
+
+只能标量对标量，标量对向量求梯度， x可以是标量或者向量，但y只能是标量,因此：
+
+```python
+x = torch.tensor([1., 2.]).requires_grad_()
+y = x * x
+
+"""此时要对x求导，需要将y转为标量，对分别求导没有影响的就是求和了"""
+y.sum().backward()
+print(x.grad)
+>>>tensor([2., 4.])
+```
+
+
+
+### 计算图
+
+对于任意一个张量来说，我们可以用 `tensor.is_leaf` 来判断它是否是叶子张量（leaf tensor）。在反向传播过程中，只有 `is_leaf=True` 的时候，需要求导的张量的导数结果才会被最后保留下来。
+
+对于 `requires_grad=False` 的 tensor 来说，我们约定俗成地把它们归为叶子张量。但其实无论如何划分都没有影响，因为张量的 `is_leaf` 属性只有在需要求导的时候才有意义。
+
+我们真正需要注意的是当 `requires_grad=True` 的时候，如何判断是否是叶子张量：当这个 tensor 是用户创建的时候，它是一个叶子节点，当这个 tensor 是由其他运算操作产生的时候，它就不是一个叶子节点。非叶子结点，是通过用户所定义的叶子节点的一系列运算生成的，也就是这些非叶子节点都是中间变量，一般情况下，用户不会去使用这些中间变量的导数，所以为了节省内存，它们在用完之后就被释放了。
+
+```python
+a = torch.ones([2, 2], requires_grad=True)
+print(a.is_leaf)
+# True
+
+b = a + 2
+print(b.is_leaf)
+# False
+# 因为 b 不是用户创建的，是通过计算生成的
+```
+
+![image-20230424212413506](pic/image-20230424212413506.png)
+
+以这张计算图为例，input 其实很像神经网络输入的图像，w1, w2, w3 则类似卷积核的参数，而 l1, l2, l3, l4 可以表示4个卷积层输出，w1,w2,w3是叶子张量，记录其运算过程中的导数，方便最后梯度更新。
+
+被叫做叶子，是因为游离在主干之外，没有子节点，因为它们都是被用户创建的，不是通过其他节点生成。对于叶子节点来说，它们的 `grad_fn` 属性都为空；而对于非叶子结点来说，因为它们是通过一些操作生成的，所以它们的 `grad_fn` 不为空。
+
+
+
+在PyTorch中计算图的特点可总结如下：
+
+- autograd根据用户对variable的操作构建其计算图。对变量的操作抽象为`Function`。
+- 对于那些不是任何函数(Function)的输出，由用户创建的节点称为叶子节点，叶子节点的`grad_fn`为None。叶子节点中需要求导的variable，具有`AccumulateGrad`标识，因其梯度是累加的。
+- variable默认是不需要求导的，即`requires_grad`属性默认为False，如果某一个节点requires_grad被设置为True，那么所有依赖它的节点`requires_grad`都为True。
+- variable的`volatile`属性默认为False，如果某一个variable的`volatile`属性被设为True，那么所有依赖它的节点`volatile`属性都为True。volatile属性为True的节点不会求导，volatile的优先级比`requires_grad`高。
+- 多次反向传播时，梯度是累加的。反向传播的中间缓存会被清空，为进行多次反向传播需指定`retain_graph`=True来保存这些缓存。
+- 非叶子节点的梯度计算完之后即被清空，可以使用`autograd.grad`或`hook`技术获取非叶子节点的值。
+- variable的grad与data形状一致，应避免直接修改variable.data，因为对data的直接操作无法利用autograd进行反向传播
+- 反向传播函数`backward`的参数`grad_variables`可以看成链式求导的中间结果，如果是标量，可以省略，默认为1
+- PyTorch采用动态图设计，可以很方便地查看中间层的输出，动态的设计计算图结构。
+
+
+
+### inplace操作
+
+inplace 指的是在不更改变量的内存地址的情况下，直接修改变量的值。就例如`a = a.exp()`为非inplace操作，在此过程中生成了新的对象；`a[0] = 10`是inplace操作。PyTorch 检测 tensor 发生了 inplace 操作是通过 `tensor._version` 来检测的，
+
+```python
+a = torch.tensor([1.0, 3.0], requires_grad=True)
+b = a + 2
+print(b._version)  # 0
+
+loss = (b * b).mean()
+b[0] = 1000.0
+print(b._version)  # 1
+
+loss.backward()  
+# RuntimeError: one of the variables needed for gradient computation has been modified by an inplace operation
+```
+
+每次 tensor 在进行 inplace 操作时，变量 `_version` 就会加1，其初始值为0。在正向传播过程中，求导系统记录的 `b` 的 version 是0，但是在进行反向传播的过程中，求导系统发现 `b` 的 version 变成1了，所以就会报错了。这个其实很好理解，loss的计算结果是基于中间变量b的，但是loss已经定义好后，又对b进行了修改，此时loss反向传播一定会报错。
+
+```python
+a = torch.tensor([10., 5., 2., 3.], requires_grad=True)
+a.add_(10.) # 或者 a += 10.
+# RuntimeError: a leaf Variable that requires grad is being used in an in-place operation.
+```
+
+这是对叶子节点(自定义一个需要求导的张量)进行inplace操作后的报错，即使是还没有使用这个张量参与计算就修改也会报错，如果确实需要在初始化这个叶子张量后进行修改，可以如下：
+
+```python
+a = torch.tensor([10., 5., 2., 3.], requires_grad=True)
+print(a, a.is_leaf, id(a))
+# tensor([10.,  5.,  2.,  3.], requires_grad=True) True 2501274822696
+
+a.data.fill_(10.)
+
+"""
+或者
+a.detach().fill_(10.)
+或者
+with torch.no_grad():
+    a[:] = 10.
+print(a, a.is_leaf)
+"""
+
+print(a, a.is_leaf, id(a))
+# tensor([10., 10., 10., 10.], requires_grad=True) True 2501274822696
+
+loss = (a*a).mean()
+loss.backward()
+print(a.grad)
+# tensor([5., 5., 5., 5.])
+```
+
+修改的方法有很多种，核心就是修改那个和变量共享内存，但 `requires_grad=False` 的版本的值，比如通过 `tensor.data` 或者 `tensor.detach()`。我们需要注意的是，要在变量被使用之前修改，不然等计算完之后再修改，还会造成求导上的问题，会报错的。
+
+
+
+
+
+### autograd.Function
 
 目前绝大多数函数都可以使用`autograd`实现反向求导，但如果需要自己写一个复杂的函数，不支持自动反向求导怎么办? 写一个`Function`，实现它的前向传播和反向传播代码，`Function`对应于计算图中的矩形， 它接收参数，计算并返回结果。
 
 ```python
+from torch.autograd import Function
 class Mul(Function):
-
+	'''
+	首先我们自定义的操作类要继承自Function
+	然后要实现forward,backward这两个函数
+	'''
     @staticmethod
     def forward(ctx, w, x, b):
-        ctx.save_for_backward(w, x)
+        ctx.save_for_backward(w, x)  # 表示forward()的结果要存起来，以后给backward()
         output = w * x + b
         return output
 
     @staticmethod
     def backward(ctx, grad_output):
+        '''grad_output是最终object对的forward()输出的导数'''
         # 根据BP算法的推导（链式法则），dloss / dx = (dloss / doutput) * (doutput / dx)
         # dloss / doutput就是输入的参数grad_output
         w, x = ctx.saved_tensors
@@ -866,7 +1531,8 @@ class Mul(Function):
 x = torch.ones(1)
 w = torch.randn(1).requires_grad_(True)
 b = torch.randn(1).requires_grad_(True)
-out = Mul.apply(w, x, b)
+mul = Mul.apply
+out = mul(x,w,b)
 out.backward()
 print(out.grad_fn)  # <torch.autograd.function.MulBackward object at 0x7ff4b129f310>
 print(x.grad, w.grad, b.grad)  # None tensor([1.]) tensor([1.])  
@@ -879,6 +1545,7 @@ print(x.grad, w.grad, b.grad)  # None tensor([1.]) tensor([1.])
 - backward函数的grad_output参数即t.autograd.backward中的`grad_variables`
 - 如果某一个输入不需要求导，直接返回None，如forward中的输入参数x_requires_grad显然无法对它求导，直接返回None即可
 - 反向传播可能需要利用前向传播的某些中间结果，需要进行保存，否则前向传播结束后这些对象即被释放
+- 使用我们自定义的类，要用到apply调用
 
 
 
@@ -909,15 +1576,17 @@ print(torch.autograd.gradcheck(torch.sigmoid, (x,), eps=1e-3))  # True
 
 
 
-## nn和autograd的关系
+### nn.Module和autograd的关系
 
 nn.Module利用的也是autograd技术，其主要工作是实现前向传播。在forward函数中，nn.Module对输入的tensor进行的各种操作，本质上都是用到了autograd技术。这里需要对比autograd.Function和nn.Module之间的区别：
 
 - autograd.Function利用了Tensor对autograd技术的扩展，为autograd实现了新的运算op，不仅要实现前向传播还要手动实现反向传播
 - nn.Module利用了autograd技术，对nn的功能进行扩展，实现了深度学习中更多的层。只需实现前向传播功能，autograd即会自动实现反向传播
-- nn.functional是一些autograd操作的集合，是经过封装的函数
+- nn.functional是一些autograd操作的集合，是经过封装的函数,如果使用它来构建深度神经网络，需要自己编写前向传播和反向传播函数
 
 作为两大类扩充PyTorch接口的方法，我们在实际使用中应该如何选择呢？如果某一个操作，在autograd中尚未支持，那么只能实现Function接口对应的前向传播和反向传播。如果某些时候利用autograd接口比较复杂，则可以利用Function将多个操作聚合，实现优化，正如第三章所实现的`Sigmoid`一样，比直接利用autograd低级别的操作要快。而如果只是想在深度学习中增加某一层，使用nn.Module进行封装则更为简单高效。
+
+
 
 
 
@@ -1125,8 +1794,16 @@ torchvision还提供了两个常用的函数。一个是`make_grid`，它能将�
 dataloader = DataLoader(cifar10DataSet,shuffle=True,batch_size=16)
 from torchvision.utils import make_grid,save_image
 
-img = make_grid(next(iter(dataloader))[0],4)  # 拼成4*4网格图片，且会转成３通道
+images,labels = next(iter(dataloader))
+img = make_grid(images,4)  # 拼成4*4网格图片，且会转成３通道
 save_image(img,'./1png')
+
+
+torchvision.utils.make_grid(tensor, nrow, padding) 
+# 参数说明
+# tensor(tensor or list)：四维 (B x C x H x W) mini-batch的tensor数据或者是包含同一尺寸的图片列表。
+# nrow(int)：网格每行图片的个数，默认是8；千万不要理解为图片的行数。
+# padding(int)：四周填充的宽度，默认是2，可以理解为网格中图片之间的间距。默认填充值是0，也就是黑色
 ```
 
 
@@ -1215,7 +1892,7 @@ vis.text('ok',win=text,append=True)
 - nn.Module
 - Optimizer
 
-本质上上述这些信息最终都是保存成Tensor。Tensor的保存和加载十分的简单，使用t.save和t.load即可完成相应的功能。在save/load时可指定使用的pickle模块，在load时还可将GPU tensor映射到CPU或其它GPU上。
+本质上上述这些信息最终都是保存成Tensor。Tensor的保存和加载十分的简单，使用torch.save和torch.load即可完成相应的功能。在save/load时可指定使用的pickle模块，在load时还可将GPU tensor映射到CPU或其它GPU上。
 
 我们可以通过`torch.save(obj, file_name)`等方法保存任意可序列化的对象，然后通过`obj = torch.load(file_name)`方法加载保存的数据。对于Module和Optimizer对象，这里建议保存对应的`state_dict`，而不是直接保存整个Module/Optimizer对象。Optimizer对象保存的主要是参数，以及动量信息，通过加载之前的动量信息，能够有效地减少模型震荡
 
@@ -1233,7 +1910,17 @@ torch.save(all_data, 'all.pth')
 all_data = torch.load('all.pth')
 ```
 
+### torch.load
 
+`torch.load(f, map_location=None, pickle_module=<module 'pickle' from '/home/jenkins/miniconda/lib/python3.5/pickle.py'>)`
+
+torch.load()先在CPU上加载，不会依赖于保存模型的设备。如果加载失败，可能是因为没有包含某些设备，比如你在gpu上训练保存的模型，而在cpu上加载，可能会报错，此时，需要使用map_location来将存储动态重新映射到可选设备上，比如`map_location=torch.device('cpu')`，意思是映射到cpu上，在cpu上加载模型，无论你这个模型从哪里训练保存的。
+
+在实践过程中遇到一个lambda表达式定义map_location的：
+
+```python
+torch.load('tensors.pt', map_location=lambda storage, loc: storage)
+```
 
 
 
@@ -1285,11 +1972,7 @@ args = parser.parse_args()  # 使用parse_args()解析函数
 
 [torchnet.meter使用教程](https://blog.csdn.net/qq_42730750/article/details/121231662)
 
-## tensor.bmm&tensor.mm&torch.matmul&torch.mul
 
-[torch.bmm()函数解读](https://blog.csdn.net/qq_40178291/article/details/100302375)
-
-[pytorch中tensor.mul()和mm()和matmul()](https://blog.csdn.net/qq_42368281/article/details/121382172)
 
 ## tqdm
 
@@ -1312,7 +1995,206 @@ for i in trange(100):
     pass
 ```
 
+如果在嵌套的循环中使用了多个tqdm，建议使用不同的desc参数来区分它们，以便更好地理解当前进度条所表示的任务。
+
+```python
+for i in tqdm(range(10), desc='Outer Loop'):
+    for j in tqdm(range(100), desc='Inner Loop'):
+        # do something
+```
+
+这里定义了一个嵌套的循环，外层循环使用了’Outer Loop’作为描述信息，内层循环使用了’Inner Loop’作为描述信息。
 
 
 
+# 0
+
+## 字符串的格式化
+
+### %
+
+标准格式如下：
+`%[(xx)][flags][width].[precise]typecode`
+
+```python
+s = "this is %(name)s,%(age)d years old" % {'name': 'bob', 'age': 18}  # this is bob,18 years old
+s = "ok%4d" % 19  # ok  19
+s = "ok%4d,no %.2f" % (19, 1.122231)  # ok  19,no 1.12
+```
+
+
+
+### format
+
+
+
+```python
+s = "我是{}, 我今年{}岁。".format('mary', 18)#需按顺序传入
+print(s)# 我是mary, 我今年18岁。
+
+s = "我是{1}, 我今年{0}岁。".format(18, 'mary')#需按下标传入
+print(s)# 我是mary, 我今年18岁。
+
+s = "我是{name}, 我今年{old}岁。".format(old=18, name='mary')#需键值对传入
+print(s)# 我是mary, 我今年18岁。
+
+s = "我是{name}, 我今年{old}岁。".format(**{'old': 18, 'name': 'mary'})#需字典传入
+print(s)# 我是mary, 我今年18岁。
+
+s = "酒精的度数是{:.2f}%".format(47)
+print(s)#酒精的度数是47.00%
+```
+
+
+
+
+
+## python中\*与\*\*运算符
+
+### 算数运算
+
+### 函数形参
+
+\*args 和\ **kwargs 主要用于函数定义。
+
+你可以将不定数量的参数传递给一个函数。不定的意思是：预先并不知道, 函数使用者会传递多少个参数给你, 所以在这个场景下使用这两个关键字。其实并不是必须写成 \*args 和\*\*kwargs。 \*(星号) 才是必须的. 你也可以写成 \*ar 和 \*\*k 。而写成 \*args 和\**kwargs 只是一个通俗的命名约定。
+
+- \*args 表示任何多个无名参数，它本质是一个 tuple
+- \*\*kwargs 表示关键字参数，它本质上是一个 dict
+
+如果同时使用 \*args 和 \*\*kwargs 时，必须\*args 参数列要在 \*\*kwargs 之前。
+
+### 函数实参
+
+```python
+def fun(*args, **kwargs):
+    print(args)
+    print(kwargs)
+
+
+def fun1(a, b, c):
+    print(a, b, c)
+
+
+fun('a', 'b', 'cd', k=1, g=2)
+'''
+('a', 'b', 'cd')
+{'k': 1, 'g': 2}
+'''
+ls = [1, 2, 3]
+fun1(*ls)
+"""1 2 3"""
+dict_1 = {'b': 1, 'a': 2, 'c': 3}
+fun1(**dict_1)
+"""2 1 3"""
+```
+
+### 序列解包
+
+在序列解包之前首先要看一下序列封包
+
+- 将多个值赋给一个变量，那么这个变量就是一个元组
+- 事实上就是Python将这个变量封装成一个元组
+
+```python
+a = 'a','b', 'c'
+a
+('a', 'b', 'c')
+type(a)
+<class 'tuple'>
+```
+
+序列解包是`Python`特有的语法，它将可迭代对象给解开，将得到的值存储到一系列变量中。
+
+```python
+a,b,c = 1,2,3
+>>>a
+   1
+>>>b
+   2
+>>>c
+   3
+"""变量和值的个数必须对应，否则会抛出异常"""
+
+n = ['a', 'b', 'c']
+a,b,c = n
+>>>a
+   'a'
+>>>b
+   'b'
+>>>c
+   'c'
+"""将可迭代对象赋给多个变量"""
+```
+
+```python
+a, b, *c = 1, 2, 3, 3, 4, 4, 5, 6
+print(a)  # 1
+print(b)  # 2
+print(c)  # [3, 3, 4, 4, 5, 6]
+
+x, *y, z = 1, 2
+print(x)  # 1
+print(y)  # []
+print(z)  # 2
+
+o, *m, n = 1, 3, 4, 6
+print(o)  # 1
+print(m)  # [3,4]
+print(n)  # 6
+```
+
+## tuple&list
+
+tuples和list还有一个区别是tuples通常是存储异质元素（*heterogeneous*）的数据结构，而list通常存储同质元素（*homogeneous*）的数据结构。
+
+```python
+a = (1, 2, 3, 1)  # tuple
+b = [1, 2, 3, 3]  # list
+"""
+tuples具有immutable的属性，意味着tuples内的元素一旦建立就无法更改、删除、排序，
+然而我们还是可以向list和tuples添加数据的。
+"""
+b[0] = 3
+# a[0] = 1  # error
+a += (9,1.5)  # (1, 2, 3, 1, 9, 1.5)
+'''
+tuples是immutable，list是mutable的，所以我们可以将tuples用作dictionary的key，但是list不可以
+'''
+c = {a:1}
+```
+
+[python 列表，元组，字典，集合，字符串相互转换 - 果果的文章 - 知乎 ](https://zhuanlan.zhihu.com/p/82703713)
+
+这里有一个很常见的函数，eval函数就是实现list、dict、tuple与str之间的转化，同样str函数把list，dict，tuple转为为字符串。
+
+
+
+list有一个很常见的用法 *list
+
+```python
+def add(a, b):
+    return a + b
+data = [4, 3]
+print(add(*data))
+print(add(data[0], data[1]))
+# 等价于 print add(4, 3)
+```
+
+
+
+### namedTuple
+
+namedtuple是继承自tuple的子类。namedtuple创建一个和tuple类似的对象，而且对象拥有可访问的属性。
+
+```python
+User = namedtuple('feature', ['name', 'sex', 'age'])
+u = User(name='lee', sex='male', age=22)
+print(u)  # feature(name='lee', sex='male', age=22)
+print(u.age)  # 22
+u = u._replace(age=12)  # 修改对象的属性
+print(u)  # feature(name='lee', sex='male', age=12)
+dict_u = u._asdict()  # 将User对象转为字典
+print(type(dict_u), dict_u)  # <class 'dict'> {'name': 'lee', 'sex': 'male', 'age': 12}
+```
 
