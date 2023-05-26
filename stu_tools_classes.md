@@ -406,3 +406,619 @@ Arrays.parallelPrefix(a, Integer::sum);
 System.out.println(Arrays.toString(a));//[1, 3, 6, 10, 15]
 ```
 
+
+
+
+
+# StringUtils工具类
+
+StringUtils 提供了非常多实用的方法，大概有下图的四页到五页，我只截了两页，实在是太多了。
+
+## 字符串判空
+
+StringUtils 给我们提供了多个判空的静态方法，例如：
+
+```java
+String str1 = null;
+String str2 = "";
+String str3 = " ";
+String str4 = "abc";
+System.out.println(StringUtils.isEmpty(str1));
+System.out.println(StringUtils.isEmpty(str2));
+System.out.println(StringUtils.isEmpty(str3));
+System.out.println(StringUtils.isEmpty(str4));
+System.out.println("=====");
+System.out.println(StringUtils.isNotEmpty(str1));
+System.out.println(StringUtils.isNotEmpty(str2));
+System.out.println(StringUtils.isNotEmpty(str3));
+System.out.println(StringUtils.isNotEmpty(str4));
+System.out.println("=====");
+System.out.println(StringUtils.isBlank(str1));
+System.out.println(StringUtils.isBlank(str2));
+System.out.println(StringUtils.isBlank(str3));
+System.out.println(StringUtils.isBlank(str4));
+System.out.println("=====");
+System.out.println(StringUtils.isNotBlank(str1));
+System.out.println(StringUtils.isNotBlank(str2));
+System.out.println(StringUtils.isNotBlank(str3));
+System.out.println(StringUtils.isNotBlank(str4));
+```
+
+执行结果：
+
+```java
+true
+true
+false
+false
+=====
+false
+false
+true
+true
+=====
+true
+true
+true
+false
+=====
+false
+false
+false
+true
+```
+
+示例中的：`isEmpty`、`isNotEmpty`、`isBlank`和`isNotBlank`，这 4 个判空方法你们可以根据实际情况使用。
+
+优先推荐使用`isBlank`和`isNotBlank`方法，因为它会把`" "`也考虑进去。
+
+
+
+## 分割字符串
+
+```java
+String str1 = null;
+System.out.println(StringUtils.split(str1,","));
+System.out.println(str1.split(","));
+```
+
+分隔字符串是常见需求，如果直接使用 String 类的 split 方法，就可能会出现空指针异常。
+
+使用 StringUtils 的 split 方法会返回 null。
+
+
+
+## 判断是否为纯数字
+
+给定一个字符串，判断它是否为纯数字，可以使用`isNumeric`方法。例如：
+
+```java
+String str1 = "123";
+String str2 = "123q";
+String str3 = "0.33";
+System.out.println(StringUtils.isNumeric(str1));
+System.out.println(StringUtils.isNumeric(str2));
+System.out.println(StringUtils.isNumeric(str3));
+```
+
+执行结果：
+
+```
+true
+false
+false
+```
+
+## 将集合拼接成字符串
+
+有时候，我们需要将某个集合的内容，拼接成一个字符串，然后输出，这时可以使用`join`方法。例如：
+
+```java
+List<String> list = Lists.newArrayList("a", "b", "c");
+List<Integer> list2 = Lists.newArrayList(1, 2, 3);
+System.out.println(StringUtils.join(list, ","));
+System.out.println(StringUtils.join(list2, " "));
+```
+
+执行结果：
+
+```
+a,b,c
+1 2 3
+```
+
+## 其他方法
+
+- `trim(String str)`：去除字符串首尾的空白字符。
+- `trimToEmpty(String str)`：去除字符串首尾的空白字符，如果字符串为 null，则返回空字符串。
+- `trimToNull(String str)`：去除字符串首尾的空白字符，如果结果为空字符串，则返回 null。
+- `equals(String str1, String str2)`：比较两个字符串是否相等。
+- `equalsIgnoreCase(String str1, String str2)`：比较两个字符串是否相等，忽略大小写。
+- `startsWith(String str, String prefix)`：检查字符串是否以指定的前缀开头。
+- `endsWith(String str, String suffix)`：检查字符串是否以指定的后缀结尾。
+- `contains(String str, CharSequence seq)`：检查字符串是否包含指定的字符序列。
+- `indexOf(String str, CharSequence seq)`：返回指定字符序列在字符串中首次出现的索引，如果没有找到，则返回 -1。
+- `lastIndexOf(String str, CharSequence seq)`：返回指定字符序列在字符串中最后一次出现的索引，如果没有找到，则返回 -1。
+- `substring(String str, int start, int end)`：截取字符串中指定范围的子串。
+- `replace(String str, String searchString, String replacement)`：替换字符串中所有出现的搜索字符串为指定的替换字符串。
+- `replaceAll(String str, String regex, String replacement)`：使用正则表达式替换字符串中所有匹配的部分。
+- `join(Iterable<?> iterable, String separator)`：使用指定的分隔符将可迭代对象中的元素连接为一个字符串。
+- `split(String str, String separator)`：使用指定的分隔符将字符串分割为一个字符串数组。
+- `capitalize(String str)`：将字符串的第一个字符转换为大写。
+- `uncapitalize(String str)`：将字符串的第一个字符转换为小写。
+
+# Objects工具类
+
+Java 的 Objects 类是一个实用工具类，包含了一系列静态方法，用于处理对象。
+
+## 对象判空
+
+Objects 的 `isNull` 方法用于判断对象是否为空，而 `nonNull` 方法判断对象是否不为空。例如：
+
+```java
+Integer integer = new Integer(1);
+
+if (Objects.isNull(integer)) {
+    System.out.println("对象为空");
+}
+
+if (Objects.nonNull(integer)) {
+    System.out.println("对象不为空");
+}
+```
+
+## 判断两个对象是否相等
+
+我们经常需要判断两个对象是否相等，Objects 给我们提供了 `equals` 方法，能非常方便的实现：
+
+```java
+Integer integer1 = new Integer(1);
+Integer integer2 = new Integer(1);
+System.out.println(Objects.equals(integer1, integer2));//true
+
+Integer integer1 = new Integer(1);
+Long integer2 = new Long(1);
+System.out.println(Objects.equals(integer1, integer2));//false
+```
+
+
+
+虽然 `Objects.equals()` 方法本身是用来避免坑的，因为它可以处理 null 值的比较，而不会抛出空指针异常。然而，这并不意味着它没有任何潜在问题。实际上，`Objects.equals()` 方法的一个潜在问题是依赖于被比较对象的 `equals()` 方法实现。
+
+当两个对象的类没有正确实现 `equals()` 方法时，`Objects.equals()` 方法可能会产生不符合预期的结果。
+
+```java
+public class ObjectsDemo1 {
+    public static void main(String[] args) {
+        Person person1 = new Person("沉默王二", 18);
+        Person person2 = new Person("沉默王二", 18);
+
+        System.out.println(Objects.equals(person1, person2)); // 输出：false
+    }
+}
+class Person {
+    String name;
+    int age;
+
+    Person(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+}
+```
+
+
+
+因此，为了更好的利用`Objects.equals`方法，我们需要重写自定义对象的`equals`
+
+```java
+@Override
+public boolean equals(Object obj) {
+    if (this == obj) {
+        return true;
+    }
+    if (obj == null || getClass() != obj.getClass()) {
+        return false;
+    }
+    Person person = (Person) obj;
+    return age == person.age && Objects.equals(name, person.name);
+}
+```
+
+## 获取对象的hashCode
+
+```java
+String str = new String("213");
+System.out.println(Objects.hashCode(str));
+```
+
+
+
+## 比较两个对象
+
+`compare()` 方法用于比较两个对象，通常用于自定义排序。它需要一个[比较器 (Comparator) ](https://tobebetterjavaer.com/basic-extra-meal/comparable-omparator.html)作为参数。如果比较器为 null，则使用自然顺序。以下是一个 `compare()` 方法的示例：
+
+```java
+class ObjectsCompareDemo {
+    public static void main(String[] args) {
+        PersonCompare p1 = new PersonCompare("itwanger", 16);
+        PersonCompare p2 = new PersonCompare("chenqingyang", 13);
+        int res = Objects.compare(p1, p2, new Comparator<Person>() {
+            @Override
+            public int compare(Person p1, Person p2) {
+                return p1.age-p2.age;
+            }
+        });
+        System.out.println(res);//3
+        
+        Comparator<Person> comparator = Comparator.comparingInt(person -> person.age);
+        int res1 = Objects.compare(p1,p2,comparator);
+        System.out.println(res1);//1
+    }
+}
+
+class PersonCompare {
+    String name;
+    int age;
+
+    PersonCompare(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+}
+```
+
+## 比较两个数组
+
+`deepEquals()` 用于比较两个数组类型的对象，当对象是非数组的话，行为和 `equals()` 一致。
+
+```
+int[] array1 = {1, 2, 3};
+int[] array2 = {1, 2, 3};
+int[] array3 = {1, 2, 4};
+
+System.out.println(Objects.deepEquals(array1, array2)); // 输出：true（因为 array1 和 array2 的内容相同）
+System.out.println(Objects.deepEquals(array1, array3)); // 输出：false（因为 array1 和 array3 的内容不同）
+
+// 对于非数组对象，deepEquals() 的行为与 equals() 相同
+String string1 = "hello";
+String string2 = "hello";
+String string3 = "world";
+
+System.out.println(Objects.deepEquals(string1, string2)); // 输出：true（因为 string1 和 string2 相同）
+System.out.println(Objects.deepEquals(string1, string3)); // 输出：false（因为 string1 和 string3 不同）
+```
+
+再来个二维数组的：
+
+```
+String[][] nestedArray1 = {{"A", "B"}, {"C", "D"}};
+String[][] nestedArray2 = {{"A", "B"}, {"C", "D"}};
+String[][] nestedArray3 = {{"A", "B"}, {"C", "E"}};
+
+System.out.println(Objects.deepEquals(nestedArray1, nestedArray2)); // 输出：true (因为嵌套数组元素相同)
+System.out.println(Objects.deepEquals(nestedArray1, nestedArray3)); // 输出：false (因为嵌套数组元素不同)
+```
+
+# Collections工具类
+
+## 排序操作
+
+- `reverse(List list)`：反转顺序
+- `shuffle(List list)`：洗牌，将顺序打乱
+- `sort(List list)`：自然升序
+- `sort(List list, Comparator c)`：按照自定义的比较器排序
+- `swap(List list, int i, int j)`：将 i 和 j 位置的元素交换位置
+
+## 查找操作
+
+- `binarySearch(List list, Object key)`：二分查找法，前提是 List 已经排序过了
+- `max(Collection coll)`：返回最大元素
+- `max(Collection coll, Comparator comp)`：根据自定义比较器，返回最大元素
+- `min(Collection coll)`：返回最小元素
+- `min(Collection coll, Comparator comp)`：根据自定义比较器，返回最小元素
+- `fill(List list, Object obj)`：使用指定对象填充
+- `frequency(Collection c, Object o)`：返回指定对象出现的次数
+
+## CollectionUtils：Spring 和 Apache 都有提供的集合工具类
+
+对集合操作，除了前面说的 JDK 原生 `Collections` 工具类，`CollectionUtils`工具类也很常用。
+
+目前比较主流的是`Spring`的`org.springframework.util`包下的 CollectionUtils 工具类和`Apache`的`org.apache.commons.collections`包下的 CollectionUtils 工具类。
+
+### 集合判空
+
+通过 CollectionUtils 工具类的`isEmpty`方法可以轻松判断集合是否为空，`isNotEmpty`方法判断集合不为空。
+
+```java
+List<Integer> list = new ArrayList<>();
+list.add(2);
+list.add(1);
+list.add(3);
+
+if (CollectionUtils.isEmpty(list)) {
+    System.out.println("集合为空");
+}
+
+if (CollectionUtils.isNotEmpty(list)) {
+    System.out.println("集合不为空");
+}
+```
+
+### 两个集合之间的操作
+
+有时候我们需要对已有的两个集合进行操作，比如取交集或者并集等。
+
+```java
+List<Integer> list = new ArrayList<>();
+list.add(2);
+list.add(1);
+list.add(3);
+
+List<Integer> list2 = new ArrayList<>();
+list2.add(2);
+list2.add(4);
+
+//获取并集
+Collection<Integer> unionList = CollectionUtils.union(list, list2);
+System.out.println(unionList);
+
+//获取交集
+Collection<Integer> intersectionList = CollectionUtils.intersection(list, list2);
+System.out.println(intersectionList);
+
+//获取交集的补集
+Collection<Integer> disjunctionList = CollectionUtils.disjunction(list, list2);
+System.out.println(disjunctionList);
+
+//获取差集
+Collection<Integer> subtractList = CollectionUtils.subtract(list, list2);
+System.out.println(subtractList);
+```
+
+
+
+
+
+
+
+# Hutool工具类
+
+Hutool 的设计思想是尽量减少重复的定义，让项目中的 util 包尽量少。一个好的轮子可以在很大程度上避免“复制粘贴”，从而节省我们开发人员对项目中公用类库和公用工具方法的封装时间。同时呢，成熟的开源库也可以最大限度的避免封装不完善带来的 bug。
+
+官方文档[Hutool — 🍬A set of tools that keep Java sweet.](https://www.hutool.cn/)
+
+
+
+## 类型转换
+
+类型转换在 Java 开发中很常见，尤其是从 HttpRequest 中获取参数的时候，前端传递的是整型，但后端只能先获取到字符串，然后再调用 `parseXXX()` 方法进行转换，还要加上判空，很繁琐。
+
+Hutool 的 Convert 类可以简化这个操作，可以将任意可能的类型转换为指定类型，同时第二个参数 defaultValue 可用于在转换失败时返回一个默认值。
+
+```java
+		String param = "10";
+        int param_int = Convert.toInt(param,10);
+        //第二个参数 defaultValue 可用于在转换失败时返回一个默
+
+        String param1 = "2001.9.12";
+        Date date = Convert.toDate(param1);
+
+        String param2 = "你好";
+        String unicode = Convert.strToUnicode(param2);
+```
+
+## 日期时间
+
+```java
+		Date date = DateUtil.date();
+        //DateUtil.date() 返回的其实是 DateTime，它继承自 Date 对象，重写了 toString() 方法，返回 yyyy-MM-dd HH:mm:ss 格式的字符串
+
+        //字符串转Date，这里的转换可以识别很多格式，包括中文
+        String dateStr = "2020-09-29";
+        Date date1 = DateUtil.parse(dateStr);
+
+        //格式化时间差
+        String dateStr1 = "2020-09-29 22:33:23";
+        Date date2 = DateUtil.parse(dateStr1);
+        String dateStr2 = "2020-10-01 23:34:27";
+        Date date3 = DateUtil.parse(dateStr2);
+        long betweenDay = DateUtil.between(date2, date3, DateUnit.MS);
+        String formatBetween = DateUtil.formatBetween(betweenDay, BetweenFormater.Level.SECOND);// 输出：2天1小时1分4秒
+
+        //星座&属相
+        String zodiac = DateUtil.getZodiac(Month.MAY.getValue(), 21);//双子座
+        String chineseZondiac = DateUtil.getChineseZodiac(2000);//龙
+        System.out.println(chineseZondiac);
+```
+
+
+
+## IO流相关
+
+Hutool 封装了流操作工具类 IoUtil、文件读写操作工具类 FileUtil、文件类型判断工具类 FileTypeUtil 等等。
+
+
+
+在 IO 操作中，文件的操作相对来说是比较复杂的，但使用频率也很高，几乎所有的项目中都躺着一个叫 FileUtil 或者 FileUtils 的工具类。Hutool 的 FileUtil 类包含以下几类操作：
+
+- 文件操作：包括文件目录的新建、删除、复制、移动、改名等
+- 文件判断：判断文件或目录是否非空，是否为目录，是否为文件等等
+- 绝对路径：针对 ClassPath 中的文件转换为绝对路径文件
+- 文件名：主文件名，扩展名的获取
+- 读操作：包括 getReader、readXXX 操作
+- 写操作：包括 getWriter、writeXXX 操作
+
+## 字符串工具
+
+Hutool 封装的字符串工具类 StrUtil 和 Apache Commons Lang 包中的 StringUtils 类似
+
+```java
+String s = "{} is {}";
+String s_full = StrUtil.format(s,"apple","nice");//apple is nice
+```
+
+## 压缩工具
+
+在 Java 中，对文件、文件夹打包压缩是一件很繁琐的事情，Hutool 封装的 ZipUtil 针对 java.util.zip 包做了优化，可以使用一个方法搞定压缩和解压，并且自动处理文件和目录的问题，不再需要用户判断，大大简化的压缩解压的复杂度。
+
+```java
+ZipUtil.zip("hutool", "hutool.zip");
+File unzip = ZipUtil.unzip("hutool.zip", "hutoolzip");
+```
+
+## 身份证工具
+
+Hutool 封装的 IdcardUtil 可以用来对身份证进行验证，支持大陆 15 位、18 位身份证，港澳台 10 位身份证。
+
+```java
+String ID_18 = "321083197812162119";
+String ID_15 = "150102880730303";
+
+boolean valid = IdcardUtil.isValidCard(ID_18);
+boolean valid15 = IdcardUtil.isValidCard(ID_15);
+```
+
+## 扩展HashMap
+
+Java 中的 HashMap 是强类型的，而 Hutool 封装的 Dict 对键的类型要求没那么严格。
+
+```java
+Dict dict = Dict.create()
+        .set("age", 18)
+        .set("name", "沉默王二")
+        .set("birthday", DateTime.now());
+
+int age = dict.getInt("age");
+String name = dict.getStr("name");
+```
+
+## 控制台的打印
+
+```java
+		String s = "{} is {}";
+        String s_full = StrUtil.format(s,"apple","nice");//apple is nice
+        Console.log(s_full);
+        Console.log("{} is nice", "banana");//banana is nice
+        int []a = {1,2,43,5,0};
+        Console.log(a);//[1, 2, 43, 5, 0]
+```
+
+## 字段验证
+
+做 Web 开发的时候，后端通常需要对表单提交过来的数据进行验证。Hutool 封装的 Validator 可以进行很多有效的条件验证：
+
+- 是不是邮箱
+- 是不是 IP V4、V6
+- 是不是电话号码
+- 等等
+
+```java
+		String param = "sda@asd";
+        Console.log(Validator.isEmail(param));
+        String param1 = "20000102";
+        Console.log(Validator.isBirthday(param1));
+```
+
+
+
+## 双向查找Map
+
+
+
+`Guava` 中提供了一种特殊的 Map 结构，叫做 BiMap，实现了一种双向查找的功能，可以根据 key 查找 value，也可以根据 value 查找 key，Hutool 也提供这种 Map 结构。
+
+```java
+		BiMap<Integer,String> biMap = new BiMap<Integer, String>(new HashMap<Integer, String>());
+        biMap.put(1,"a");
+        biMap.put(2,"g");
+
+        Console.log(biMap.get(1));//a
+        Console.log(biMap.getKey("g"));//2
+```
+
+
+
+## 缓存工具
+
+
+
+CacheUtil 是 Hutool 封装的创建缓存的快捷工具类，可以创建不同的缓存对象：
+
+- FIFOCache：先入先出，元素不停的加入缓存直到缓存满为止，当缓存满时，清理过期缓存对象，清理后依旧满则删除先入的缓存。
+
+```java
+Cache<String, String> fifoCache = CacheUtil.newFIFOCache(3);
+fifoCache.put("key1", "沉默王一");
+fifoCache.put("key2", "沉默王二");
+fifoCache.put("key3", "沉默王三");
+fifoCache.put("key4", "沉默王四");
+
+// 大小为 3，所以 key3 放入后 key1 被清除
+String value1 = fifoCache.get("key1");
+```
+
+
+
+- LFUCache，最少使用，根据使用次数来判定对象是否被持续缓存，当缓存满时清理过期对象，清理后依旧满的情况下清除最少访问的对象并将其他对象的访问数减去这个最少访问数，以便新对象进入后可以公平计数。
+
+```java
+Cache<String, String> lfuCache = CacheUtil.newLFUCache(3);
+
+lfuCache.put("key1", "沉默王一");
+// 使用次数+1
+lfuCache.get("key1");
+lfuCache.put("key2", "沉默王二");
+lfuCache.put("key3", "沉默王三");
+lfuCache.put("key4", "沉默王四");
+
+// 由于缓存容量只有 3，当加入第 4 个元素的时候，最少使用的将被移除（2,3被移除）
+String value2 = lfuCache.get("key2");
+String value3 = lfuCache.get("key3");
+```
+
+
+
+- LRUCache，最近最久未使用，根据使用时间来判定对象是否被持续缓存，当对象被访问时放入缓存，当缓存满了，最久未被使用的对象将被移除。
+
+```java
+Cache<String, String> lruCache = CacheUtil.newLRUCache(3);
+
+lruCache.put("key1", "沉默王一");
+lruCache.put("key2", "沉默王二");
+lruCache.put("key3", "沉默王三");
+// 使用时间近了
+lruCache.get("key1");
+lruCache.put("key4", "沉默王四");
+
+// 由于缓存容量只有 3，当加入第 4 个元素的时候，最久使用的将被移除（2）
+String value2 = lruCache.get("key2");
+System.out.println(value2);
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
