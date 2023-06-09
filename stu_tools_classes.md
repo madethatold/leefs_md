@@ -412,7 +412,17 @@ System.out.println(Arrays.toString(a));//[1, 3, 6, 10, 15]
 
 # StringUtils工具类
 
-StringUtils 提供了非常多实用的方法，大概有下图的四页到五页，我只截了两页，实在是太多了。
+`org.apache.commons.lang3`包下的`StringUtils`工具类提供了非常多实用的方法
+
+Maven 坐标：
+
+```text
+<dependency>
+    <groupId>org.apache.commons</groupId>
+    <artifactId>commons-lang3</artifactId>
+    <version>3.12.0</version>
+</dependency>
+```
 
 ## 字符串判空
 
