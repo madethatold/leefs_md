@@ -756,3 +756,33 @@ String 类的 `split()` 方法使用的时候，是建立在字符串是确定�
 ```java
 String [] parts = cmower.split(Pattern.quote("."));
 ```
+
+# String&char[]
+
+偶然遇到一个问题：chars转String的时候，用到的一般有 `new String(chars)`和`String.valueOf(chars)`
+
+但是不可以使用`chars.toString()`，这只是数组的打印罢了，有点混淆了，我们是没有重写toString方法的
+
+
+
+- `new String(chars)` 返回一个新创建的字符串对象，该对象包含了字符数组中的实际字符序列。
+- `chars.toString()` 返回字符数组对象的默认字符串表示，而不是字符数组中的实际字符序列。
+
+
+
+- `new String(chars)` 创建的字符串包含了字符数组中的实际字符序列，即按照字符数组的顺序组成的字符串。
+- `chars.toString()` 返回的字符串是字符数组对象的默认字符串表示。对于字符数组，它返回的是对象的类名，后跟一些附加信息，而不是数组中的字符内容。
+
+例如，对于字符数组 `['a', 'b', 'c']`：
+
+- `new String(chars)` 返回的是字符串 `"abc"`。
+- `chars.toString()` 返回的是字符串表示形式 `"[C@1f6a7b9"`。
+
+
+
+- `new String(chars)` 常用于将字符数组的内容转换为字符串，以便进行字符串操作。
+- `chars.toString()` 常用于将对象转换为字符串，用于调试或打印对象的默认字符串表示。
+
+## `new String(chars)`&`String.valueOf(chars)`
+
+在大多数情况下，这两个方法的使用效果是相同的。然而，如果你需要处理空字符数组的情况，或者想要确保不会抛出 `NullPointerException` 异常，那么使用 `String.valueOf(chars)` 可能更合适，因为它会返回一个表示空字符数组的字符串 `"null"`。
