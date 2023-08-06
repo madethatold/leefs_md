@@ -182,6 +182,16 @@ fail-fast是一种可能触发的机制，实际上，ArrayList的线程安全�
 
 # Set
 
+## HashSet
+
+HashSet 底层就是基于 HashMap 实现的。（ HashSet 的源码⾮常⾮常少，因为除了 clone() 、 writeObject() 、 readObject() 是 HashSet⾃⼰不得不实现之外，其他⽅法都是直接调⽤ HashMap 中的⽅法。
+
+HashSet的add方法，直接调用HashMap的put方法，将添加的元素作为key，new一个Object作为value，直接调用HashMap的put方法，它会根据返回值是否为空来判断是否插入元素成功。
+
+
+
+
+
 ## 比较 HashSet、LinkedHashSet 和 TreeSet 三者的异同
 
 - `HashSet`、`LinkedHashSet` 和 `TreeSet` 都是 `Set` 接口的实现类，都能保证元素唯一，并且都不是线程安全的。
@@ -307,16 +317,35 @@ public  class Person implements Comparable<Person> {
 
 ## PriorityQueue
 
-`PriorityQueue` 是在 JDK1.5 中被引入的, 其与 `Queue` 的区别在于元素出队顺序是与优先级相关的，即总是优先级最高的元素先出队。
+PriorityQueue（优先队列）是一种数据结构，它可以存储一组元素，并按照优**先级进行访问和操作**。与常规队列不同，优先队列中的元素并不是按照插入的顺序进行访问，而是根据其优先级来确定访问顺序。较高优先级的元素先出队，较低优先级的元素则稍后出队。
+
+### 底层原理 
+
+PriorityQueue 的底层实现通常使用堆（heap）数据结构。堆是一种特殊的二叉树结构，它满足以下两个性质：
+
+1. **堆是一个完全二叉树**，即除了最底层，其他层都是满的，且最底层的节点都尽量靠左排列。
+2. 对于最大堆（Max Heap）或最小堆（Min Heap），**每个节点的值都大于或等于（最大堆）或小于或等于（最小堆）其子节点的值。**
+
+通过使用堆来实现优先队列，**我们可以确保较高优先级的元素总是位于队列的前面**。这样，当我们插入新元素或者移除元素时，可以保持堆的特性，以快速访问和操作具有最高优先级的元素。
 
 这里列举其相关的一些要点：
 
-- `PriorityQueue` 利用了二叉堆的数据结构来实现的，底层使用可变长的数组来存储数据
 - `PriorityQueue` 通过堆元素的上浮和下沉，实现了在 O(logn) 的时间复杂度内插入元素和删除堆顶元素。
 - `PriorityQueue` 是非线程安全的，且不支持存储 `NULL` 和 `non-comparable` 的对象。
 - `PriorityQueue` 默认是小顶堆，但可以接收一个 `Comparator` 作为构造参数，从而来自定义元素优先级的先后。
 
-`PriorityQueue` 在面试中可能更多的会出现在手撕算法的时候，典型例题包括堆排序、求第 K 大的数、带权图的遍历等，所以需要会熟练使用才行。
+### 应用
+
+```java
+PriorityQueue<Integer> pq = new PriorityQueue<>(new Comparator<Integer>() {
+    @Override
+    public int compare(Integer a, Integer b) {
+          return map.get(a) - map.get(b);
+    }
+});			
+```
+
+`PriorityQueue` 在面试中可能更多的会出现在手撕算法的时候，典型例题包括top-k问题(leetcode347),单调队列解题(leetcode239题)
 
 ## BlockingQueue
 
@@ -505,6 +534,20 @@ HashMap使用链表的原因为了处理哈希冲突，这种方法就是所谓�
 4. 否则，当前节点是否为树节点，查找红黑树
 5. 否则，遍历链表查找
 
+## HashMap的扩容机制
+
+**为了减少哈希冲突发生的概率，当HashMap的元素个数达到一个临界值的时候，就会触发扩容，把所有元素rehash之后再放在扩容后的容器中，这是一个相当耗时的操作。**
+
+HashMap在创建时需要指定初始容量=16和负载因子=0.75。初始容量是指HashMap内部数组的初始大小。
+
+每次添加键值对后，HashMap会检查**当前元素数量是否超过了负载因子乘以当前容量**。如果超过了阈值，就需要进行扩容操作。
+
+当需要扩容时，HashMap会将当前的容量扩大一倍，并重新计算每个键值对在新的内部数组中的位置。然后，将原有的键值对重新分布到新的位置上。这个过程需要遍历原有的内部数组，并重新计算每个键值对的位置，因此扩容操作的时间复杂度为O(n)，其中n为元素的数量。
+
+在扩容过程中，如果某个位置上的链表长度达到一定的阈值（默认为8），且当前HashMap的容量已经达到64（即扩容后的容量），那么该链表将被转换为红黑树，以提高在大量元素情况下的查询和操作性能。
+
+
+
 ## HashMap的哈希/扰动函数是怎么设计的?
 
 HashMap的哈希函数是先拿到 key 的hashcode，是一个32位的int类型的数值，然后让hashcode的高16位和低16位进行异或操作。
@@ -529,7 +572,7 @@ HashMap的哈希函数是先拿到 key 的hashcode，是一个32位的int类型�
 
 源码中模运算就是把散列值和数组长度 - 1 做一个 "`与&`" 操作，位运算比取余 % 运算要快。
 
-## 为什么HashMap链表转红黑树的阈值为8呢？
+## HashMap中链表-红黑树的转换
 
 HashMap实现中，当链表长度达到一定阈值（且table长度>64）时，会将链表转换为红黑树。这个阈值在JDK8中被设置为8。 转换链表为红黑树的目的是为了在特定情况下提高HashMap的性能。红黑树相对于链表在查找、插入和删除操作上具有更好的时间复杂度，因此当链表过长时，使用红黑树可以提高这些操作的效率。
 
@@ -537,26 +580,156 @@ HashMap实现中，当链表长度达到一定阈值（且table长度>64）时�
 
 
 
-## HashMap 多线程操作导致死循环问题
+在进行扩容操作时，红黑树拆分成的节点个数小于等于6时，会退化为链表
 
-JDK1.7 及之前版本的 `HashMap` 在多线程环境下扩容操作可能存在死循环问题，这是由于当一个桶位中有多个元素需要进行扩容时，多个线程同时对链表进行操作，头插法可能会导致链表中的节点指向错误的位置，从而**形成一个环形链表**，进而使得查询元素的操作陷入死循环无法结束。
 
-为了解决这个问题，JDK1.8 版本的 HashMap 采用了尾插法而不是头插法来避免链表倒置，使得插入的节点永远都是放在链表的末尾，避免了链表中的环形结构。但是还是不建议在多线程下使用 `HashMap`，因为多线程下使用 `HashMap` 还是会存在数据覆盖的问题。并发环境下，推荐使用 `ConcurrentHashMap` 。
 
-## HashMap 为什么线程不安全
+## 自己设计一个HashMap
 
-多个键值对可能会被分配到同一个桶（bucket），并以链表或红黑树的形式存储。多个线程对 `HashMap` 的 `put` 操作会导致线程不安全，具体来说会有数据覆盖的风险。
+整体的设计：
+
+- 散列函数：hashCode()+除留余数法
+- 冲突解决：链地址法
+- 扩容：节点重新hash获取位置
+
+```java
+public class HashMap_C<K, V> {
+    class Node<K, V> {
+        private K key;
+        private V value;
+        private Node<K, V> next;
+
+        public Node(K key, V value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        public Node(K key, V value, Node<K, V> next) {
+            this.key = key;
+            this.value = value;
+            this.next = next;
+        }
+    }
+
+    final int DEFAULT_CAPCITY = 16;
+    final float LOAD_FACTOR = 0.75f;
+    private int size;//HashMap的大小
+    Node<K, V>[] buckets;
+
+    public HashMap_C() {
+        this.size = 0;
+        this.buckets = new Node[DEFAULT_CAPCITY];
+    }
+
+    private int getIndex(K key, int length) {
+        int hashCode = key.hashCode();
+        int index = hashCode % length;
+        return Math.abs(index);
+    }
+
+    public void put(K key, V value) {
+        if (size >= buckets.length * LOAD_FACTOR) resize();
+        putVal(key, value, buckets);
+    }
+
+    private void putVal(K key, V value, Node<K, V>[] buckets) {
+        int index = getIndex(key, buckets.length);
+        Node node = buckets[index];
+        if (node == null) {
+            buckets[index] = new Node<>(key, value);
+            size++;
+            return;
+        }
+        while (node != null) {
+            //key相同，则覆盖
+            if ((node.key.hashCode() == key.hashCode()) && (node.key == key || node.key.equals(key))) {
+                node.value = value;
+            }
+            node = node.next;
+        }
+        //当前的key不存在与链表中，那就加入链表头部
+        Node tmp = new Node(key, value, buckets[index]);
+        buckets[index] = tmp;
+        size++;
+    }
+
+    private void resize() {
+        Node<K, V>[] newBuckets = new Node[buckets.length * 2];
+        rehash(newBuckets);
+        buckets = newBuckets;
+
+    }
+
+    private void rehash(Node<K, V>[] newBuckets) {
+        //从头开始
+        size = 0;
+
+        for (int i = 0; i < buckets.length; i++) {
+            if (buckets[i] == null) {
+                continue;
+            }
+            Node<K, V> cur = buckets[i];
+            while (cur != null) {
+                putVal(cur.key, cur.value, newBuckets);
+                cur = cur.next;
+            }
+        }
+    }
+
+    public V get(K key) {
+        int index = getIndex(key, buckets.length);
+        if (buckets[index] == null) return null;
+        Node<K, V> cur = buckets[index];
+        while (cur != null) {
+            if ((cur.key.hashCode() == key.hashCode()) && (cur.key == key || cur.key.equals(key))) {
+                return cur.value;
+            }
+            cur = cur.next;
+        }
+        return null;
+    }
+
+    public int getSize() {
+        return size;
+    }
+}
+```
+
+## LinkedHashMap
+
+LinkedHashMap维护了一个双向链表，有头尾节点，同时 LinkedHashMap 节点 Entry 内部除了继承 HashMap 的 Node 属性，还有 before 和 after 用于标识前置节点和后置节点。
+
+1. **保持插入顺序或访问顺序**：通过双向链表结构，LinkedHashMap可以保持插入顺序或最近访问顺序。通过指向前一个节点和后一个节点的引用，可以在O(1)的时间内插入和删除节点。  
+2. **基于HashMap实现**：LinkedHashMap基于HashMap实现，使用了哈希表作为底层数据结构来存储键值对。因此，LinkedHashMap具有与HashMap相似的查找和插入操作的性能。 
+3. **可选择的访问顺序**：通过构造方法中的accessOrder参数，可以选择使LinkedHashMap按照插入顺序或最近访问顺序进行排序。当accessOrder设置为true时，每次访问节点后会将其移到链表的尾部，实现最近访问顺序。
+
+## TreeMap
+
+TreeMap 是按照 Key 的自然顺序或者 Comprator 的顺序进行排序，内部是通过红黑树来实现。所以要么 key 所属的类实现 Comparable 接口，或者自定义一个实现了 Comparator 接口的比较器，传给 TreeMap 用于 key 的比较。
+
+## HashMap的线程安全问题
+
+HashMap不是线程安全的，可能会发生这些问题：
+
+### 多线程操作导致死循环问题
+
+多线程下扩容死循环。JDK1.7 中的 HashMap 使用头插法插入元素，在多线程的环境下，扩容的时候有可能导致环形链表的出现，形成死循环。因此，JDK1.8 使用尾插法插入元素，在扩容时会保持链表元素原本的顺序，不会出现环形链表的问题。
+
+但是还是不建议在多线程下使用 `HashMap`，因为多线程下使用 `HashMap` 还是会存在数据覆盖的问题。并发环境下，推荐使用 `ConcurrentHashMap` 。
+
+### 多线程的 put 可能导致元素的丢失
+
+多线程同时执行 put 操作，如果计算出来的索引位置是相同的，多个键值对可能会被分配到同一个桶（bucket），并以链表或红黑树的形式存储。多个线程对 `HashMap` 的 `put` 操作会导致线程不安全，具体来说会有**数据覆盖的风险。**
 
 - 两个线程 1,2 同时进行 put 操作，并且发生了哈希冲突（hash 函数计算出的插入下标是相同的）。
 - 不同的线程可能在不同的时间片获得 CPU 执行的机会，当前线程 1 执行完哈希冲突判断后，由于时间片耗尽挂起。线程 2 先完成了插入操作。
 - 随后，线程 1 获得时间片，由于之前已经进行过 hash 碰撞的判断，所有此时会直接进行插入，这就导致线程 2 插入的数据被线程 1 覆盖了。
 
-还有一种情况是这两个线程同时 `put` 操作导致 `size` 的值不正确，进而导致数据覆盖的问题：
+### put 和 get 并发时，可能导致 get 为 null
 
-1. 线程 1 执行 `if(++size > threshold)` 判断时，假设获得 `size` 的值为 10，由于时间片耗尽挂起。
-2. 线程 2 也执行 `if(++size > threshold)` 判断，获得 `size` 的值也为 10，并将元素插入到该桶位中，并将 `size` 的值更新为 11。
-3. 随后，线程 1 获得时间片，它也将元素放入桶位中，并将 size 的值更新为 11。
-4. 线程 1、2 都执行了一次 `put` 操作，但是 `size` 的值只增加了 1，也就导致实际上只有一个元素被添加到了 `HashMap` 中。
+线程 1 执行 put 时，因为元素个数超出 threshold 而导致 rehash，线程 2 此时执行 get，有可能导致这个问题。这个问题在 JDK 1.7 和 JDK 1.8 中都存在。
+
+
 
 ## HashMap的遍历方式
 
